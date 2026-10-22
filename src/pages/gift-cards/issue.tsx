@@ -1,48 +1,22 @@
 import { Create } from "@refinedev/antd";
-import { useCustomMutation } from "@refinedev/core";
 import { Form, Input, InputNumber, Select, message } from "antd";
 import { useNavigate } from "react-router";
-import { API_URL } from "../../providers/constants";
+import { useIssueGiftCard } from "../../hooks/use-issue-gift-card";
 
-// Not a generic create -- calls the dedicated transactional endpoint
-// (app/routers/gift_cards.py) that inserts the gift_cards row AND the
-// 'issued' gift_card_transactions row together, which is the only way the
-// balance ends up correct.
 export const GiftCardIssue = () => {
   const navigate = useNavigate();
-  const { mutate, mutation } = useCustomMutation();
   const [form] = Form.useForm();
-
-  const onFinish = (values: { currency: string; initial_amount: number; recipient_email?: string }) => {
-    mutate(
-      {
-        url: `${API_URL}/gift-cards/issue`,
-        method: "post",
-        values: {
-          currency: values.currency,
-          initial_amount: Math.round(values.initial_amount * 100),
-          recipient_email: values.recipient_email || undefined,
-        },
-        config: { headers: { "Content-Type": "application/json" } },
-      },
-      {
-        onSuccess: ({ data }) => {
-          message.success(`Issued ${data.code}`);
-          navigate("/gift-cards");
-        },
-        onError: (error: any) => {
-          message.error(error?.message ?? "Failed to issue gift card");
-        },
-      },
-    );
-  };
+  const { issue, issuing } = useIssueGiftCard((code) => {
+    message.success(`Issued ${code}`);
+    navigate("/gift-cards");
+  });
 
   return (
     <Create
-      saveButtonProps={{ onClick: () => form.submit(), loading: mutation.isPending }}
+      saveButtonProps={{ onClick: () => form.submit(), loading: issuing }}
       title="Issue gift card"
     >
-      <Form form={form} layout="vertical" onFinish={onFinish}>
+      <Form form={form} layout="vertical" onFinish={issue}>
         <Form.Item label="Currency" name="currency" rules={[{ required: true }]} initialValue="PLN">
           <Select
             options={[

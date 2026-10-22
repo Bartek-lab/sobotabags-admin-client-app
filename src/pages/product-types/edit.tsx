@@ -1,5 +1,5 @@
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { useCreate, useCustomMutation, useList } from "@refinedev/core";
+import { useCreate, useList, type HttpError } from "@refinedev/core";
 import {
   Button,
   Card,
@@ -12,7 +12,7 @@ import {
   Table,
   message,
 } from "antd";
-import { API_URL } from "../../providers/constants";
+import { useRemoveProductTypeAttribute } from "../../hooks/use-product-type-attributes";
 
 type Attribute = { id: string; code: string };
 type TypeAttributeRow = {
@@ -54,7 +54,7 @@ export const ProductTypeEdit = () => {
   });
 
   const { mutate: createAssociation } = useCreate();
-  const { mutate: deleteAssociation } = useCustomMutation();
+  const removeAssociation = useRemoveProductTypeAttribute(id as string | undefined, () => typeAttrsQuery.refetch());
   const [addForm] = Form.useForm();
 
   const onAdd = (values: {
@@ -79,20 +79,13 @@ export const ProductTypeEdit = () => {
           addForm.resetFields();
           typeAttrsQuery.refetch();
         },
-        onError: (error: any) => message.error(error?.message ?? "Failed to add attribute"),
+        onError: (error: HttpError) => message.error(error.message ?? "Failed to add attribute"),
       },
     );
   };
 
   const onRemove = (attributeId: string) => {
-    deleteAssociation(
-      {
-        url: `${API_URL}/product_type_attributes/${id}/${attributeId}`,
-        method: "delete",
-        values: {},
-      },
-      { onSuccess: () => typeAttrsQuery.refetch() },
-    );
+    removeAssociation(attributeId);
   };
 
   return (

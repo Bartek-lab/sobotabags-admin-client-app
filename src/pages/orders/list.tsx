@@ -29,14 +29,21 @@ export const OrderList = () => {
   });
 
   return (
-    <List title="Orders (display-only -- no checkout yet, mock data)">
+    <List title="Orders">
       <Table {...tableProps} rowKey="id">
         <Table.Column dataIndex="number" title="Order #" />
         <Table.Column dataIndex="email" title="Email" />
         <Table.Column
           dataIndex="status"
           title="Status"
-          render={(v: string) => <Tag color={statusColor[v]}>{v}</Tag>}
+          render={(v: string, r: BaseRecord) => (
+            <Space direction="vertical" size={0}>
+              <Tag color={statusColor[v]}>{v}</Tag>
+              {v === "cancelled" && r.cancel_reason === "consumer_withdrawal" && (
+                <Tag color="volcano">odstąpienie od umowy</Tag>
+              )}
+            </Space>
+          )}
         />
         <Table.Column
           dataIndex="payment_status"

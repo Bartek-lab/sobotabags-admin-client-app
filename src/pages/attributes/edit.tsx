@@ -1,5 +1,5 @@
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { useCreate, useDelete, useList } from "@refinedev/core";
+import { useCreate, useDelete, useList, type HttpError } from "@refinedev/core";
 import {
   Button,
   Card,
@@ -9,7 +9,6 @@ import {
   Input,
   InputNumber,
   Select,
-  Space,
   Table,
   Typography,
   message,
@@ -51,7 +50,7 @@ export const AttributeEdit = () => {
           optionForm.resetFields();
           optionsQuery.refetch();
         },
-        onError: (error: any) => message.error(error?.message ?? "Failed to add option"),
+        onError: (error: HttpError) => message.error(error.message ?? "Failed to add option"),
       },
     );
   };

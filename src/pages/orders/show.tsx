@@ -1,6 +1,7 @@
 import { Show } from "@refinedev/antd";
-import { useList, useShow } from "@refinedev/core";
-import { Card, Descriptions, Divider, Table, Tag, Typography } from "antd";
+import { useList, useShow, useUpdate } from "@refinedev/core";
+import { Button, Card, Descriptions, Divider, Input, Select, Table, Tag, Typography } from "antd";
+import { useEffect, useState } from "react";
 
 const { Title } = Typography;
 
@@ -20,6 +21,13 @@ type Order = {
   total_amount: number;
   shipping_method_name: string | null;
   shipping_carrier_code: string | null;
+  pickup_point: {
+    point_name: string;
+    point_address: string | null;
+    first_name: string;
+    last_name: string;
+    phone: string | null;
+  } | null;
   customer_note: string | null;
   placed_at: string | null;
   completed_at: string | null;
@@ -54,6 +62,15 @@ type OrderAddress = {
   country_code: string;
 };
 
+type OrderWithdrawal = {
+  id: string;
+  order_id: string;
+  reason: string | null;
+  status: string;
+  admin_note: string | null;
+  requested_at: string;
+};
+
 type Payment = {
   id: string;
   provider: string;
@@ -68,6 +85,64 @@ type Payment = {
   failure_code: string | null;
   failure_message: string | null;
   created_at: string;
+};
+
+// The customer-facing "odstąp od umowy" button (shop-client) inserts the row
+// this card edits -- no create/delete here, only status/admin_note, matching
+// order_withdrawals' allow_create=False/allow_delete=False in admin-api.
+const WithdrawalCard = ({ withdrawal, onSaved }: { withdrawal: OrderWithdrawal; onSaved: () => void }) => {
+  const [status, setStatus] = useState(withdrawal.status);
+  const [adminNote, setAdminNote] = useState(withdrawal.admin_note ?? "");
+  const { mutate, mutation } = useUpdate();
+
+  useEffect(() => {
+    setStatus(withdrawal.status);
+    setAdminNote(withdrawal.admin_note ?? "");
+  }, [withdrawal.status, withdrawal.admin_note]);
+
+  const save = () => {
+    mutate(
+      { resource: "order_withdrawals", id: withdrawal.id, values: { status, admin_note: adminNote || null } },
+      { onSuccess: onSaved },
+    );
+  };
+
+  return (
+    <Card title="Odstąpienie od umowy" size="small" style={{ marginTop: 16, borderColor: "#faad14" }}>
+      <Descriptions bordered column={1} size="small">
+        <Descriptions.Item label="Zgłoszono">
+          {new Date(withdrawal.requested_at).toLocaleString()}
+        </Descriptions.Item>
+        <Descriptions.Item label="Powód (opcjonalnie podany)">
+          {withdrawal.reason ?? "-- nie podano --"}
+        </Descriptions.Item>
+        <Descriptions.Item label="Status">
+          <Select
+            value={status}
+            onChange={setStatus}
+            style={{ width: 200 }}
+            options={[
+              { label: "Zgłoszone", value: "submitted" },
+              { label: "Przyjęte do realizacji", value: "acknowledged" },
+              { label: "Zwrócono środki", value: "refunded" },
+              { label: "Odrzucone", value: "rejected" },
+            ]}
+          />
+        </Descriptions.Item>
+        <Descriptions.Item label="Notatka wewnętrzna">
+          <Input.TextArea
+            rows={2}
+            value={adminNote}
+            onChange={(e) => setAdminNote(e.target.value)}
+            placeholder="np. zwrot nadany 10.10, towar sprawdzony, saldo zwrócone przez Stripe"
+          />
+        </Descriptions.Item>
+      </Descriptions>
+      <Button type="primary" style={{ marginTop: 12 }} loading={mutation.isPending} onClick={save}>
+        Zapisz
+      </Button>
+    </Card>
+  );
 };
 
 export const OrderShow = () => {
@@ -95,6 +170,13 @@ export const OrderShow = () => {
     queryOptions: { enabled: !!orderId },
     pagination: { pageSize: 10 },
   });
+  const { result: withdrawalsResult, query: withdrawalsQuery } = useList<OrderWithdrawal>({
+    resource: "order_withdrawals",
+    filters: orderId ? [{ field: "order_id", operator: "eq", value: orderId }] : [],
+    queryOptions: { enabled: !!orderId },
+    pagination: { pageSize: 1 },
+  });
+  const withdrawal = withdrawalsResult?.data?.[0];
 
   const paymentStatusColor: Record<string, string> = {
     pending: "default", requires_action: "gold", processing: "blue",
@@ -125,6 +207,8 @@ export const OrderShow = () => {
               <Descriptions.Item label="Customer note" span={2}>{order.customer_note}</Descriptions.Item>
             )}
           </Descriptions>
+
+          {withdrawal && <WithdrawalCard withdrawal={withdrawal} onSaved={() => withdrawalsQuery.refetch()} />}
 
           <Divider />
           <Title level={5}>Items</Title>
@@ -157,18 +241,30 @@ export const OrderShow = () => {
 
           <Divider />
           <Title level={5}>Addresses</Title>
-          <div style={{ display: "flex", gap: 16 }}>
-            {(addressesResult?.data ?? []).map((addr) => (
-              <Card key={addr.kind} title={addr.kind} size="small" style={{ flex: 1 }}>
-                <div>{addr.first_name} {addr.last_name}</div>
-                {addr.company && <div>{addr.company}</div>}
-                <div>{addr.line1}</div>
-                {addr.line2 && <div>{addr.line2}</div>}
-                <div>{addr.postal_code} {addr.city}</div>
-                <div>{addr.country_code}</div>
-              </Card>
-            ))}
-          </div>
+          {order.pickup_point ? (
+            // Pickup-point orders (InPost locker) have zero order_addresses
+            // rows -- there's no street address, just this blob, captured at
+            // checkout from the Furgonetka map widget.
+            <Card title="pickup point" size="small" style={{ maxWidth: 400 }}>
+              <div><strong>{order.pickup_point.point_name}</strong></div>
+              {order.pickup_point.point_address && <div>{order.pickup_point.point_address}</div>}
+              <div>Odbiorca: {order.pickup_point.first_name} {order.pickup_point.last_name}</div>
+              {order.pickup_point.phone && <div>Tel: {order.pickup_point.phone}</div>}
+            </Card>
+          ) : (
+            <div style={{ display: "flex", gap: 16 }}>
+              {(addressesResult?.data ?? []).map((addr) => (
+                <Card key={addr.kind} title={addr.kind} size="small" style={{ flex: 1 }}>
+                  <div>{addr.first_name} {addr.last_name}</div>
+                  {addr.company && <div>{addr.company}</div>}
+                  <div>{addr.line1}</div>
+                  {addr.line2 && <div>{addr.line2}</div>}
+                  <div>{addr.postal_code} {addr.city}</div>
+                  <div>{addr.country_code}</div>
+                </Card>
+              ))}
+            </div>
+          )}
 
           <Divider />
           <Title level={5}>Payments</Title>

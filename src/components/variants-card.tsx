@@ -1,4 +1,3 @@
-import { useCustom, useCustomMutation } from "@refinedev/core";
 import {
   Button,
   Card,
@@ -10,10 +9,10 @@ import {
   Select,
   Table,
   Typography,
-  message,
 } from "antd";
 import { useEffect, useState } from "react";
-import { API_URL } from "../providers/constants";
+import { useVariants } from "../hooks/use-variants";
+import type { Variant } from "../api/variants";
 
 const { Text } = Typography;
 
@@ -24,24 +23,7 @@ type AttributeDef = {
   is_required: boolean | null;
   attribute?: { id: string; code: string; data_type: string };
 };
-type VariantAttributeValue = { attribute_id: string; code: string; data_type: string; value: unknown };
-type Variant = {
-  id: string;
-  sku: string;
-  is_active: boolean;
-  quantity_on_hand: number;
-  ship_weight_g: number | null;
-  ship_length_mm: number | null;
-  ship_width_mm: number | null;
-  ship_height_mm: number | null;
-  price_amount: number | null;
-  attributes: VariantAttributeValue[];
-};
 
-// Same reasoning as ProductMediaCard/TranslationsCard: a variant's price and
-// axis/scalar attribute values live in composite-PK tables generic CRUD
-// can't address, so this goes through the dedicated endpoint
-// (app/routers/variants.py) instead of useCreate/useUpdate.
 export const VariantsCard = ({
   productId,
   attributeDefs,
@@ -51,16 +33,7 @@ export const VariantsCard = ({
   attributeDefs: AttributeDef[];
   optionsByAttribute: Map<string, AttributeOption[]>;
 }) => {
-  const { result, query } = useCustom<Variant[]>({
-    url: `${API_URL}/products/${productId}/variants`,
-    method: "get",
-    queryOptions: { enabled: !!productId },
-  });
-  const variants = Array.isArray(result?.data) ? result.data : [];
-
-  const { mutate: createVariant, mutation: createMutation } = useCustomMutation();
-  const { mutate: updateVariant, mutation: updateMutation } = useCustomMutation();
-  const { mutate: deleteVariant } = useCustomMutation();
+  const { variants, saving, save, remove } = useVariants(productId, attributeDefs);
 
   const [form] = Form.useForm();
   const [modalOpen, setModalOpen] = useState(false);
@@ -132,57 +105,7 @@ export const VariantsCard = ({
   };
 
   const onSubmit = (values: Record<string, unknown>) => {
-    const attributes = attributeDefs
-      .map((def) => ({ attribute_id: def.attribute_id, value: values[def.attribute_id] }))
-      .filter((a) => a.value !== undefined && a.value !== null && a.value !== "");
-
-    const body = {
-      sku: values.sku,
-      is_active: !!values.is_active,
-      quantity_on_hand: values.quantity_on_hand ?? 0,
-      ship_weight_g: values.ship_weight_g ?? null,
-      ship_length_mm: values.ship_length_mm ?? null,
-      ship_width_mm: values.ship_width_mm ?? null,
-      ship_height_mm: values.ship_height_mm ?? null,
-      price_amount:
-        values.price !== undefined && values.price !== null
-          ? Math.round((values.price as number) * 100)
-          : null,
-      attributes,
-    };
-
-    const onSuccess = () => {
-      message.success(editing ? "Variant updated" : "Variant created");
-      setModalOpen(false);
-      query.refetch();
-    };
-    const onError = (error: any) => message.error(error?.message ?? "Failed to save variant");
-    const config = { headers: { "Content-Type": "application/json" } };
-
-    if (editing) {
-      updateVariant(
-        { url: `${API_URL}/products/${productId}/variants/${editing.id}`, method: "put", values: body, config },
-        { onSuccess, onError },
-      );
-    } else {
-      createVariant(
-        { url: `${API_URL}/products/${productId}/variants`, method: "post", values: body, config },
-        { onSuccess, onError },
-      );
-    }
-  };
-
-  const onDelete = (variantId: string) => {
-    deleteVariant(
-      { url: `${API_URL}/products/${productId}/variants/${variantId}`, method: "delete", values: {} },
-      {
-        onSuccess: () => {
-          message.success("Variant deleted");
-          query.refetch();
-        },
-        onError: (error: any) => message.error(error?.message ?? "Failed to delete variant"),
-      },
-    );
+    save(values, editing?.id, () => setModalOpen(false));
   };
 
   if (!productId) return null;
@@ -234,7 +157,7 @@ export const VariantsCard = ({
               <Button size="small" onClick={() => openCopy(r)} style={{ marginRight: 8 }}>
                 Copy
               </Button>
-              <Button danger size="small" onClick={() => onDelete(r.id)}>
+              <Button danger size="small" onClick={() => remove(r.id)}>
                 Delete
               </Button>
             </>
@@ -247,7 +170,7 @@ export const VariantsCard = ({
         open={modalOpen}
         onCancel={() => setModalOpen(false)}
         onOk={() => form.submit()}
-        confirmLoading={createMutation.isPending || updateMutation.isPending}
+        confirmLoading={saving}
         destroyOnHidden
       >
         <Form form={form} layout="vertical" onFinish={onSubmit}>

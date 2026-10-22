@@ -1,5 +1,5 @@
 import { Edit, useForm } from "@refinedev/antd";
-import { useCreate, useCustom, useCustomMutation, useDelete, useList } from "@refinedev/core";
+import { useCreate, useCustom, useCustomMutation, useDelete, useList, type HttpError } from "@refinedev/core";
 import {
   Button,
   Card,
@@ -69,7 +69,7 @@ export const PromotionEdit = () => {
           codeForm.resetFields();
           codesQuery.refetch();
         },
-        onError: (error: any) => message.error(error?.message ?? "Failed to add code"),
+        onError: (error: HttpError) => message.error(error.message ?? "Failed to add code"),
       },
     );
   };
@@ -135,7 +135,7 @@ export const PromotionEdit = () => {
           message.success("Discount amount saved");
           currencyValueQuery.refetch();
         },
-        onError: (error: any) => message.error(error?.message ?? "Failed to save discount amount"),
+        onError: (error: HttpError) => message.error(error.message ?? "Failed to save discount amount"),
       },
     );
   };

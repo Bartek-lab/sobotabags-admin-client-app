@@ -1,5 +1,5 @@
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { useCustom, useCustomMutation, useList } from "@refinedev/core";
+import { useList } from "@refinedev/core";
 import {
   Button,
   Card,
@@ -11,14 +11,12 @@ import {
   InputNumber,
   Select,
   Typography,
-  message,
 } from "antd";
-import { useEffect, useMemo } from "react";
-import dayjs from "dayjs";
-import { API_URL } from "../../providers/constants";
+import { useMemo } from "react";
 import { TranslationsCard } from "../../components/translations-card";
 import { ProductMediaCard } from "../../components/product-media";
 import { VariantsCard } from "../../components/variants-card";
+import { useProductAttributes } from "../../hooks/use-product-attributes";
 
 const { Text } = Typography;
 
@@ -36,7 +34,6 @@ type TypeAttribute = {
   level: string;
   is_required: boolean | null;
 };
-type AttributeValue = { attribute_id: string; code: string; data_type: string; value: unknown };
 
 // This is the screen the whole POC was built to stress-test: a product's
 // available fields depend on its product_type, which generic CRUD has no
@@ -73,14 +70,8 @@ export const ProductEdit = () => {
     pagination: { pageSize: 100 },
   });
 
-  const { result: valuesResult, query: valuesQuery } = useCustom<AttributeValue[]>({
-    url: `${API_URL}/products/${productId}/attributes`,
-    method: "get",
-    queryOptions: { enabled: !!productId },
-  });
-
-  const { mutate: saveAttributes, mutation: saveMutation } = useCustomMutation();
   const [attrForm] = Form.useForm();
+  const { save: saveAttributes, saving: savingAttributes } = useProductAttributes(productId, attrForm);
 
   // product-level, non-translatable attributes for this product's type --
   // variant-level axes are out of scope for this pass. Translatable text
@@ -138,41 +129,10 @@ export const ProductEdit = () => {
       );
   }, [attributesResult, typeAttrsResult]);
 
-  useEffect(() => {
-    if (!Array.isArray(valuesResult?.data)) return;
-    const initial: Record<string, unknown> = {};
-    for (const v of valuesResult.data) {
-      initial[v.attribute_id] = v.data_type === "date" && v.value ? dayjs(v.value as string) : v.value;
-    }
-    attrForm.setFieldsValue(initial);
-  }, [valuesResult, attrForm]);
-
   type ProductAttribute = TypeAttribute & { attribute?: Attribute };
 
   const onSaveAttributes = (values: Record<string, unknown>) => {
-    const payload = (productAttributes as ProductAttribute[])
-      .filter((ta) => values[ta.attribute_id] !== undefined && values[ta.attribute_id] !== null)
-      .map((ta) => {
-        const raw = values[ta.attribute_id];
-        const value =
-          ta.attribute?.data_type === "date" && raw ? (raw as dayjs.Dayjs).format("YYYY-MM-DD") : raw;
-        return { attribute_id: ta.attribute_id, value };
-      });
-    saveAttributes(
-      {
-        url: `${API_URL}/products/${productId}/attributes`,
-        method: "put",
-        values: payload,
-        config: { headers: { "Content-Type": "application/json" } },
-      },
-      {
-        onSuccess: () => {
-          message.success("Attributes saved");
-          valuesQuery.refetch();
-        },
-        onError: (error: any) => message.error(error?.message ?? "Failed to save attributes"),
-      },
-    );
+    saveAttributes(values, productAttributes as ProductAttribute[]);
   };
 
   return (
@@ -266,7 +226,7 @@ export const ProductEdit = () => {
                 </Form.Item>
               );
             })}
-            <Button type="primary" htmlType="submit" loading={saveMutation.isPending}>
+            <Button type="primary" htmlType="submit" loading={savingAttributes}>
               Save attributes
             </Button>
           </Form>
