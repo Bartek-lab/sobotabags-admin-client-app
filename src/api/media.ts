@@ -1,6 +1,5 @@
 import { kyInstance } from "../providers/data";
 import { API_URL } from "../providers/constants";
-import { TOKEN_KEY } from "../providers/auth";
 
 export type ProductMediaItem = {
   id: string;
@@ -42,10 +41,9 @@ export async function uploadProductMedia(
   // automatic multipart boundary -- the server then can't parse `file`
   // at all and returns 422. A bare fetch lets the browser set the
   // correct multipart Content-Type itself.
-  const token = localStorage.getItem(TOKEN_KEY);
   const response = await fetch(`${API_URL}/products/${productId}/media`, {
     method: "POST",
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    credentials: "include",
     body: formData,
   });
   if (!response.ok) {

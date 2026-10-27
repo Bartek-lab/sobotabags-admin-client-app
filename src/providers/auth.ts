@@ -1,12 +1,14 @@
 import type { AuthProvider } from "@refinedev/core";
 import { API_URL } from "./constants";
 
-const TOKEN_KEY = "admin_access_token";
-
+// Session lives in an httpOnly cookie set by admin-api -- never read or
+// stored in JS here, so every call needs `credentials: "include"` to send
+// it cross-site (admin-client on Vercel, admin-api on Render).
 export const authProvider: AuthProvider = {
   login: async ({ email, password }) => {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
@@ -17,35 +19,22 @@ export const authProvider: AuthProvider = {
         error: { name: "LoginError", message: body.detail ?? "Invalid email or password" },
       };
     }
-    const { access_token } = await response.json();
-    localStorage.setItem(TOKEN_KEY, access_token);
     return { success: true, redirectTo: "/" };
   },
 
   logout: async () => {
-    localStorage.removeItem(TOKEN_KEY);
+    await fetch(`${API_URL}/auth/logout`, { method: "POST", credentials: "include" }).catch(() => {});
     return { success: true, redirectTo: "/login" };
   },
 
   check: async () => {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) return { authenticated: false, redirectTo: "/login" };
-    const response = await fetch(`${API_URL}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!response.ok) {
-      localStorage.removeItem(TOKEN_KEY);
-      return { authenticated: false, redirectTo: "/login" };
-    }
+    const response = await fetch(`${API_URL}/auth/me`, { credentials: "include" });
+    if (!response.ok) return { authenticated: false, redirectTo: "/login" };
     return { authenticated: true };
   },
 
   getIdentity: async () => {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) return null;
-    const response = await fetch(`${API_URL}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await fetch(`${API_URL}/auth/me`, { credentials: "include" });
     if (!response.ok) return null;
     const admin = await response.json();
     return { id: admin.id, name: admin.full_name, email: admin.email };
@@ -58,5 +47,3 @@ export const authProvider: AuthProvider = {
     return {};
   },
 };
-
-export { TOKEN_KEY };

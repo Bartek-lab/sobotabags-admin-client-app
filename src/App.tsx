@@ -1,3 +1,4 @@
+import { BookOutlined } from "@ant-design/icons";
 import { Authenticated, Refine } from "@refinedev/core";
 import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
@@ -31,6 +32,8 @@ import { OrderList, OrderShow } from "./pages/orders";
 import { PaymentList } from "./pages/payments";
 import { ShippingMethodCreate, ShippingMethodEdit, ShippingMethodList } from "./pages/shipping-methods";
 import { CustomerEdit, CustomerList } from "./pages/customers";
+
+import { DocsPage } from "./pages/docs";
 
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import { Header } from "./components/header";
@@ -122,6 +125,11 @@ function App() {
                     edit: "/shipping-methods/edit/:id",
                     meta: { canDelete: true, label: "Shipping methods" },
                   },
+                  {
+                    name: "docs",
+                    list: "/docs",
+                    meta: { label: "Documentation", icon: <BookOutlined /> },
+                  },
                 ]}
                 options={{
                   syncWithLocation: true,
@@ -193,6 +201,9 @@ function App() {
                       <Route path="create" element={<ShippingMethodCreate />} />
                       <Route path="edit/:id" element={<ShippingMethodEdit />} />
                     </Route>
+                    <Route path="/docs">
+                      <Route index element={<DocsPage />} />
+                    </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
 
@@ -203,7 +214,12 @@ function App() {
                       </Authenticated>
                     }
                   >
-                    <Route path="/login" element={<AuthPage type="login" />} />
+                    {/* One fixed admin account, credentials set directly in the
+                        DB -- no self-service registration or password reset. */}
+                    <Route
+                      path="/login"
+                      element={<AuthPage type="login" registerLink={false} forgotPasswordLink={false} />}
+                    />
                   </Route>
                 </Routes>
 

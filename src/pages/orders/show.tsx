@@ -1,7 +1,20 @@
 import { Show } from "@refinedev/antd";
-import { useList, useShow, useUpdate } from "@refinedev/core";
-import { Button, Card, Descriptions, Divider, Input, Select, Table, Tag, Typography } from "antd";
+import { useCustomMutation, useList, useShow, useUpdate } from "@refinedev/core";
+import {
+  Button,
+  Card,
+  Checkbox,
+  Descriptions,
+  Divider,
+  Input,
+  InputNumber,
+  Select,
+  Table,
+  Tag,
+  Typography,
+} from "antd";
 import { useEffect, useState } from "react";
+import { API_URL } from "../../providers/constants";
 
 const { Title } = Typography;
 
@@ -33,6 +46,9 @@ type Order = {
   completed_at: string | null;
   cancelled_at: string | null;
   cancel_reason: string | null;
+  tracking_number: string | null;
+  tracking_url: string | null;
+  shipped_at: string | null;
   created_at: string;
 };
 
@@ -85,6 +101,220 @@ type Payment = {
   failure_code: string | null;
   failure_message: string | null;
   created_at: string;
+};
+
+type Refund = {
+  id: string;
+  payment_id: string;
+  provider_refund_id: string | null;
+  status: string;
+  amount: number;
+  reason: string | null;
+  restocked: boolean;
+  created_at: string;
+};
+
+const refundStatusColor: Record<string, string> = {
+  pending: "gold", succeeded: "green", failed: "red", canceled: "default",
+};
+
+// Calls POST /orders/{id}/refund (app/routers/refunds.py) -- can't be
+// generic CRUD since it calls Stripe and touches payments/orders/
+// product_variants/order_withdrawals together. See
+// admin-api/app/services/refund_service.py for the full orchestration.
+const RefundCard = ({
+  orderId,
+  payment,
+  lines,
+  refunds,
+  formatAmount,
+  onIssued,
+}: {
+  orderId: string;
+  payment: Payment;
+  lines: OrderLine[];
+  refunds: Refund[];
+  formatAmount: (minorUnits: number) => string | number;
+  onIssued: () => void;
+}) => {
+  const refundable = payment.amount_captured - payment.amount_refunded;
+  const [amount, setAmount] = useState<number>(refundable / 100);
+  const [reason, setReason] = useState("");
+  const [restockLineIds, setRestockLineIds] = useState<string[]>([]);
+  const { mutate, mutation } = useCustomMutation();
+
+  const toggleRestock = (lineId: string, checked: boolean) => {
+    setRestockLineIds((prev) => (checked ? [...prev, lineId] : prev.filter((id) => id !== lineId)));
+  };
+
+  const submit = () => {
+    mutate(
+      {
+        url: `${API_URL}/orders/${orderId}/refund`,
+        method: "post",
+        values: {
+          amount: Math.round(amount * 100),
+          reason: reason || undefined,
+          restock_order_line_ids: restockLineIds,
+        },
+        config: { headers: { "Content-Type": "application/json" } },
+      },
+      {
+        onSuccess: () => {
+          setReason("");
+          setRestockLineIds([]);
+          onIssued();
+        },
+      },
+    );
+  };
+
+  return (
+    <Card title="Zwrot środków" size="small" style={{ marginTop: 16 }}>
+      {refunds.length > 0 && (
+        <Table
+          dataSource={refunds}
+          rowKey="id"
+          pagination={false}
+          size="small"
+          style={{ marginBottom: 16 }}
+        >
+          <Table.Column dataIndex="amount" title="Kwota" render={formatAmount} />
+          <Table.Column
+            dataIndex="status"
+            title="Status"
+            render={(v: string) => <Tag color={refundStatusColor[v]}>{v}</Tag>}
+          />
+          <Table.Column dataIndex="reason" title="Powód" render={(v: string | null) => v ?? "--"} />
+          <Table.Column
+            dataIndex="restocked"
+            title="Dotowarowano"
+            render={(v: boolean) => (v ? "tak" : "nie")}
+          />
+          <Table.Column
+            dataIndex="created_at"
+            title="Data"
+            render={(v: string) => new Date(v).toLocaleString()}
+          />
+        </Table>
+      )}
+
+      {refundable <= 0 ? (
+        <Typography.Text type="secondary">Płatność została już w pełni zwrócona.</Typography.Text>
+      ) : (
+        <>
+          <Descriptions bordered column={1} size="small">
+            <Descriptions.Item label="Dostępne do zwrotu">{formatAmount(refundable)}</Descriptions.Item>
+            <Descriptions.Item label="Kwota zwrotu">
+              <InputNumber
+                min={0.01}
+                max={refundable / 100}
+                step={1}
+                value={amount}
+                onChange={(v) => setAmount(v ?? 0)}
+                style={{ width: 160 }}
+              />
+            </Descriptions.Item>
+            <Descriptions.Item label="Powód (opcjonalnie)">
+              <Input.TextArea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} />
+            </Descriptions.Item>
+            <Descriptions.Item label="Dotowarować (przywrócić stan magazynowy)">
+              {lines.map((line) => (
+                <div key={line.id}>
+                  <Checkbox
+                    checked={restockLineIds.includes(line.id)}
+                    onChange={(e) => toggleRestock(line.id, e.target.checked)}
+                  >
+                    {line.product_name} {line.variant_label ? `(${line.variant_label})` : ""} ×{" "}
+                    {line.quantity}
+                  </Checkbox>
+                </div>
+              ))}
+            </Descriptions.Item>
+          </Descriptions>
+          <Button
+            type="primary"
+            danger
+            style={{ marginTop: 12 }}
+            loading={mutation.isPending}
+            onClick={submit}
+          >
+            Wystaw zwrot przez Stripe
+          </Button>
+        </>
+      )}
+    </Card>
+  );
+};
+
+// Deliberately simple -- no separate shipments table, no carrier API. The
+// admin ships however they actually do it (InPost's own app, a Poczta
+// Polska counter) and records the result here; this calls POST
+// /orders/{id}/ship, which updates the order and fires the
+// shipment-confirmation email in one action. See
+// admin-api/app/services/shipment_service.py.
+const ShipmentCard = ({ order, onShipped }: { order: Order; onShipped: () => void }) => {
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [trackingUrl, setTrackingUrl] = useState("");
+  const { mutate, mutation } = useCustomMutation();
+
+  const submit = () => {
+    mutate(
+      {
+        url: `${API_URL}/orders/${order.id}/ship`,
+        method: "post",
+        values: { tracking_number: trackingNumber, tracking_url: trackingUrl || undefined },
+        config: { headers: { "Content-Type": "application/json" } },
+      },
+      { onSuccess: onShipped },
+    );
+  };
+
+  if (order.fulfillment_status === "fulfilled") {
+    return (
+      <Card title="Wysyłka" size="small" style={{ marginTop: 16 }}>
+        <Descriptions bordered column={1} size="small">
+          <Descriptions.Item label="Wysłano">
+            {order.shipped_at ? new Date(order.shipped_at).toLocaleString() : "--"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Numer przesyłki">{order.tracking_number ?? "--"}</Descriptions.Item>
+          {order.tracking_url && (
+            <Descriptions.Item label="Śledzenie">
+              <a href={order.tracking_url} target="_blank" rel="noreferrer">
+                {order.tracking_url}
+              </a>
+            </Descriptions.Item>
+          )}
+        </Descriptions>
+      </Card>
+    );
+  }
+
+  return (
+    <Card title="Oznacz jako wysłane" size="small" style={{ marginTop: 16 }}>
+      <Descriptions bordered column={1} size="small">
+        <Descriptions.Item label="Numer przesyłki">
+          <Input
+            value={trackingNumber}
+            onChange={(e) => setTrackingNumber(e.target.value)}
+            placeholder="np. KAXI01BAPP lub numer listu przewozowego"
+          />
+        </Descriptions.Item>
+        <Descriptions.Item label="Link do śledzenia (opcjonalnie)">
+          <Input value={trackingUrl} onChange={(e) => setTrackingUrl(e.target.value)} placeholder="https://..." />
+        </Descriptions.Item>
+      </Descriptions>
+      <Button
+        type="primary"
+        style={{ marginTop: 12 }}
+        disabled={!trackingNumber}
+        loading={mutation.isPending}
+        onClick={submit}
+      >
+        Oznacz jako wysłane i wyślij e-mail do klienta
+      </Button>
+    </Card>
+  );
 };
 
 // The customer-facing "odstąp od umowy" button (shop-client) inserts the row
@@ -164,11 +394,18 @@ export const OrderShow = () => {
     queryOptions: { enabled: !!orderId },
     pagination: { pageSize: 10 },
   });
-  const { result: paymentsResult } = useList<Payment>({
+  const { result: paymentsResult, query: paymentsQuery } = useList<Payment>({
     resource: "payments",
     filters: orderId ? [{ field: "order_id", operator: "eq", value: orderId }] : [],
     queryOptions: { enabled: !!orderId },
     pagination: { pageSize: 10 },
+  });
+  const succeededPayment = (paymentsResult?.data ?? []).find((p) => p.status === "succeeded");
+  const { result: refundsResult, query: refundsQuery } = useList<Refund>({
+    resource: "refunds",
+    filters: succeededPayment ? [{ field: "payment_id", operator: "eq", value: succeededPayment.id }] : [],
+    queryOptions: { enabled: !!succeededPayment },
+    pagination: { pageSize: 20 },
   });
   const { result: withdrawalsResult, query: withdrawalsQuery } = useList<OrderWithdrawal>({
     resource: "order_withdrawals",
@@ -207,6 +444,8 @@ export const OrderShow = () => {
               <Descriptions.Item label="Customer note" span={2}>{order.customer_note}</Descriptions.Item>
             )}
           </Descriptions>
+
+          <ShipmentCard order={order} onShipped={() => query?.refetch()} />
 
           {withdrawal && <WithdrawalCard withdrawal={withdrawal} onSaved={() => withdrawalsQuery.refetch()} />}
 
@@ -289,6 +528,20 @@ export const OrderShow = () => {
                 render={(_, p: Payment) => p.failure_message ?? "--"}
               />
             </Table>
+          )}
+
+          {succeededPayment && (
+            <RefundCard
+              orderId={order.id}
+              payment={succeededPayment}
+              lines={linesResult?.data ?? []}
+              refunds={refundsResult?.data ?? []}
+              formatAmount={formatAmount}
+              onIssued={() => {
+                paymentsQuery.refetch();
+                refundsQuery.refetch();
+              }}
+            />
           )}
         </>
       )}
