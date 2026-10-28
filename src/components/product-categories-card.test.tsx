@@ -1,15 +1,31 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const defaultCategories = [
-  { id: "cat-bags", code: "bags", parent_id: null, is_active: true },
-  { id: "cat-handbags", code: "handbags", parent_id: "cat-bags", is_active: true },
-  { id: "cat-men", code: "men", parent_id: null, is_active: false },
+type TestCategory = {
+  id: string;
+  code: string;
+  parent_id: string | null;
+  is_active: boolean;
+  sort_order: number;
+  name: string | null;
+};
+
+const defaultCategories: TestCategory[] = [
+  { id: "cat-bags", code: "bags", parent_id: null, is_active: true, sort_order: 0, name: "Torby" },
+  {
+    id: "cat-handbags",
+    code: "handbags",
+    parent_id: "cat-bags",
+    is_active: true,
+    sort_order: 0,
+    name: "Torebki",
+  },
+  { id: "cat-men", code: "men", parent_id: null, is_active: false, sort_order: 0, name: "Dla panów" },
 ];
 let categories: typeof defaultCategories = defaultCategories;
 
 vi.mock("@refinedev/core", () => ({
-  useList: () => ({ result: { data: categories }, query: { isLoading: false } }),
+  useCustom: () => ({ result: { data: categories }, query: { isLoading: false } }),
 }));
 
 const setCategoryIds = vi.fn();
@@ -51,10 +67,20 @@ describe("ProductCategoriesCard", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("shows the parent/child code and an (inactive) marker where applicable", () => {
+  it("shows the parent/child translated name and an (inactive) marker where applicable", () => {
     render(<ProductCategoriesCard productId="prod-1" />);
-    expect(screen.getByText((_, el) => el?.textContent === "bags / handbags")).toBeInTheDocument();
+    expect(screen.getByText((_, el) => el?.textContent === "Torby / Torebki")).toBeInTheDocument();
     expect(screen.getByText("(inactive)", { exact: false })).toBeInTheDocument();
+  });
+
+  it("falls back to the raw code and shows a warning tag when a category has no translation yet", () => {
+    categories = [
+      ...defaultCategories,
+      { id: "cat-funny", code: "funny_bags", parent_id: null, is_active: true, sort_order: 0, name: null },
+    ];
+    render(<ProductCategoriesCard productId="prod-1" />);
+    expect(screen.getByText("funny_bags")).toBeInTheDocument();
+    expect(screen.getByText(/no translation yet/i)).toBeInTheDocument();
   });
 
   it("checking a new category adds it to categoryIds without touching primaryId", () => {

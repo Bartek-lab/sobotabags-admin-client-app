@@ -1,16 +1,14 @@
-import { useList } from "@refinedev/core";
-import { Button, Card, Checkbox, Radio, Space, Spin, Typography } from "antd";
+import { useCustom } from "@refinedev/core";
+import { Button, Card, Checkbox, Radio, Space, Spin, Tag, Typography } from "antd";
+import { categoriesWithNamesUrl, type CategoryWithName as Category } from "../api/categories";
 import { useProductCategories } from "../hooks/use-product-categories";
 
 const { Text } = Typography;
 
-type Category = { id: string; code: string; parent_id: string | null; is_active: boolean | null };
-
 export const ProductCategoriesCard = ({ productId }: { productId?: string }) => {
-  const { result, query } = useList<Category>({
-    resource: "categories",
-    pagination: { pageSize: 200 },
-    sorters: [{ field: "code", order: "asc" }],
+  const { result, query } = useCustom<Category[]>({
+    url: categoriesWithNamesUrl(),
+    method: "get",
   });
   const { categoryIds, setCategoryIds, primaryId, setPrimaryId, save, saving } =
     useProductCategories(productId);
@@ -47,14 +45,20 @@ export const ProductCategoriesCard = ({ productId }: { productId?: string }) => 
             {categories.map((c) => {
               const parent = c.parent_id ? byId.get(c.parent_id) : undefined;
               const checked = categoryIds.includes(c.id);
+              const parentLabel = parent ? (parent.name ?? parent.code) : null;
               return (
                 <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <Checkbox checked={checked} onChange={(e) => toggle(c.id, e.target.checked)} />
                   <span>
-                    {parent ? `${parent.code} / ` : ""}
-                    {c.code}
+                    {parentLabel ? `${parentLabel} / ` : ""}
+                    {c.name ?? c.code}
                     {c.is_active === false ? <Text type="secondary"> (inactive)</Text> : null}
                   </span>
+                  {c.name === null && (
+                    <Tag color="warning" title="Add a translation on this category's edit screen -- it won't show on the storefront until it has one.">
+                      no translation yet
+                    </Tag>
+                  )}
                   <Radio value={c.id} disabled={!checked}>
                     primary
                   </Radio>
