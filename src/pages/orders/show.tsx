@@ -1,5 +1,5 @@
 import { Show } from "@refinedev/antd";
-import { useCustomMutation, useList, useShow, useUpdate } from "@refinedev/core";
+import { useCustom, useCustomMutation, useList, useShow, useUpdate } from "@refinedev/core";
 import {
   Button,
   Card,
@@ -117,6 +117,11 @@ type Refund = {
 
 const refundStatusColor: Record<string, string> = {
   pending: "gold", succeeded: "green", failed: "red", canceled: "default",
+};
+
+type OrderDiscounts = {
+  promo: { code: string | null; promotion_name: string; discount_amount: number } | null;
+  gift_cards: { code: string; amount: number }[];
 };
 
 // Calls POST /orders/{id}/refund (app/routers/refunds.py) -- can't be
@@ -395,6 +400,13 @@ export const OrderShow = () => {
   const formatAmount = (minorUnits: number) =>
     order ? new Intl.NumberFormat("pl-PL", { style: "currency", currency: order.currency }).format(minorUnits / 100) : minorUnits;
 
+  const { result: discountsResult } = useCustom<OrderDiscounts>({
+    url: `${API_URL}/orders/${orderId}/discounts`,
+    method: "get",
+    queryOptions: { enabled: !!orderId },
+  });
+  const discounts = discountsResult?.data;
+
   const { result: linesResult, query: linesQuery } = useList<OrderLine>({
     resource: "order_lines",
     filters: orderId ? [{ field: "order_id", operator: "eq", value: orderId }] : [],
@@ -486,7 +498,23 @@ export const OrderShow = () => {
           </Table>
 
           <Descriptions bordered column={1} size="small" style={{ marginTop: 16, maxWidth: 400, marginLeft: "auto" }}>
-            <Descriptions.Item label="Discount">{formatAmount(order.discount_amount)}</Descriptions.Item>
+            <Descriptions.Item label="Discount">
+              {formatAmount(order.discount_amount)}
+              {discounts?.promo && (
+                <div style={{ fontSize: 12, color: "rgba(0,0,0,0.45)" }}>
+                  via <Tag>{discounts.promo.code ?? "(code deleted)"}</Tag> {discounts.promo.promotion_name}
+                </div>
+              )}
+            </Descriptions.Item>
+            {discounts && discounts.gift_cards.length > 0 && (
+              <Descriptions.Item label="Gift card(s) used">
+                {discounts.gift_cards.map((gc) => (
+                  <div key={gc.code}>
+                    <Tag>{gc.code}</Tag> -{formatAmount(gc.amount)}
+                  </div>
+                ))}
+              </Descriptions.Item>
+            )}
             <Descriptions.Item label="Shipping">{formatAmount(order.shipping_amount)}</Descriptions.Item>
             <Descriptions.Item label="Tax">{formatAmount(order.tax_amount)}</Descriptions.Item>
             <Descriptions.Item label="Total"><strong>{formatAmount(order.total_amount)}</strong></Descriptions.Item>
