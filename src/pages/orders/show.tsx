@@ -8,6 +8,7 @@ import {
   Divider,
   Input,
   InputNumber,
+  message,
   Select,
   Table,
   Tag,
@@ -266,7 +267,19 @@ const ShipmentCard = ({ order, onShipped }: { order: Order; onShipped: () => voi
         values: { tracking_number: trackingNumber, tracking_url: trackingUrl || undefined },
         config: { headers: { "Content-Type": "application/json" } },
       },
-      { onSuccess: onShipped },
+      {
+        onSuccess: (data) => {
+          const emailSent = (data?.data as { email_sent?: boolean } | undefined)?.email_sent;
+          if (emailSent === false) {
+            message.warning(
+              "Zamówienie oznaczone jako wysłane, ale e-mail do klienta nie poszedł (np. limit trybu testowego Resend) -- poinformuj klienta ręcznie.",
+            );
+          } else {
+            message.success("Zamówienie oznaczone jako wysłane, e-mail wysłany.");
+          }
+          onShipped();
+        },
+      },
     );
   };
 
