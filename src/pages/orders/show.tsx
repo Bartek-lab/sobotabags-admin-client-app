@@ -254,7 +254,7 @@ const RefundCard = ({
 // /orders/{id}/ship, which updates the order and fires the
 // shipment-confirmation email in one action. See
 // admin-api/app/services/shipment_service.py.
-const ShipmentCard = ({ order, onShipped }: { order: Order; onShipped: () => void }) => {
+export const ShipmentCard = ({ order, onShipped }: { order: Order; onShipped: () => void }) => {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [trackingUrl, setTrackingUrl] = useState("");
   const { mutate, mutation } = useCustomMutation();
