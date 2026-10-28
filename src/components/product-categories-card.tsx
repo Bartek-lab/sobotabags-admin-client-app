@@ -15,7 +15,7 @@ export const ProductCategoriesCard = ({ productId }: { productId?: string }) => 
 
   if (!productId) return null;
 
-  const categories = result?.data ?? [];
+  const categories = Array.isArray(result?.data) ? result.data : [];
   const byId = new Map(categories.map((c) => [c.id, c]));
 
   const toggle = (id: string, checked: boolean) => {

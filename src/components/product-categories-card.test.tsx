@@ -147,4 +147,17 @@ describe("ProductCategoriesCard", () => {
     expect(screen.getByText(/no categories defined yet/i)).toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   });
+
+  // Regression: a non-array `result.data` (e.g. an unexpected response
+  // shape) must not crash the page -- confirmed live, `categories.map` on
+  // a non-array threw an uncaught TypeError that took down the whole
+  // product edit page.
+  it("treats a non-array response as empty instead of crashing", () => {
+    categories = { not: "an array" } as unknown as TestCategory[];
+    hookState.categoryIds = [];
+    hookState.primaryId = null;
+    render(<ProductCategoriesCard productId="prod-1" />);
+
+    expect(screen.getByText(/no categories defined yet/i)).toBeInTheDocument();
+  });
 });
