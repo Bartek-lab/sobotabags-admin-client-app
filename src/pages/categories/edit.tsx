@@ -3,7 +3,7 @@ import { Checkbox, Divider, Form, Input, InputNumber, Select } from "antd";
 import { TranslationsCard } from "../../components/translations-card";
 
 export const CategoryEdit = () => {
-  const { formProps, saveButtonProps, id } = useForm({});
+  const { formProps, saveButtonProps, formLoading, id } = useForm({});
   const { selectProps: parentSelectProps } = useSelect({
     resource: "categories",
     optionLabel: "code",
@@ -15,7 +15,7 @@ export const CategoryEdit = () => {
   });
 
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonProps} isLoading={formLoading}>
       <Form {...formProps} layout="vertical">
         <Form.Item label="Code" name="code" rules={[{ required: true }]}>
           <Input />

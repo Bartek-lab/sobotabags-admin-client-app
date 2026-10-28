@@ -24,7 +24,7 @@ type TypeAttributeRow = {
 };
 
 export const ProductTypeEdit = () => {
-  const { formProps, saveButtonProps, id } = useForm({});
+  const { formProps, saveButtonProps, formLoading, id } = useForm({});
   const { selectProps: taxClassSelectProps } = useSelect({
     resource: "tax_classes",
     optionLabel: "name",
@@ -89,7 +89,7 @@ export const ProductTypeEdit = () => {
   };
 
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonProps} isLoading={formLoading}>
       <Form {...formProps} layout="vertical">
         <Form.Item label="Code" name="code" rules={[{ required: true }]}>
           <Input />

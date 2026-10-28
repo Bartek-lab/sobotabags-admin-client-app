@@ -395,7 +395,7 @@ export const OrderShow = () => {
   const formatAmount = (minorUnits: number) =>
     order ? new Intl.NumberFormat("pl-PL", { style: "currency", currency: order.currency }).format(minorUnits / 100) : minorUnits;
 
-  const { result: linesResult } = useList<OrderLine>({
+  const { result: linesResult, query: linesQuery } = useList<OrderLine>({
     resource: "order_lines",
     filters: orderId ? [{ field: "order_id", operator: "eq", value: orderId }] : [],
     queryOptions: { enabled: !!orderId },
@@ -469,6 +469,7 @@ export const OrderShow = () => {
             rowKey="id"
             pagination={false}
             size="small"
+            loading={linesQuery.isLoading}
             summary={() => (
               <Table.Summary.Row>
                 <Table.Summary.Cell index={0} colSpan={4} />
@@ -523,7 +524,13 @@ export const OrderShow = () => {
           {(paymentsResult?.data ?? []).length === 0 ? (
             <Typography.Text type="secondary">No payment recorded yet -- awaiting payment.</Typography.Text>
           ) : (
-            <Table dataSource={paymentsResult?.data ?? []} rowKey="id" pagination={false} size="small">
+            <Table
+              dataSource={paymentsResult?.data ?? []}
+              rowKey="id"
+              pagination={false}
+              size="small"
+              loading={paymentsQuery.isLoading}
+            >
               <Table.Column dataIndex="provider" title="Provider" />
               <Table.Column dataIndex="method_type" title="Method" />
               <Table.Column

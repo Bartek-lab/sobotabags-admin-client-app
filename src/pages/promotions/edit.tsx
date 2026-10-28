@@ -42,7 +42,7 @@ type CurrencyValue = { promotion_id: string; currency: string; amount_off: numbe
 const CURRENCY = "PLN";
 
 export const PromotionEdit = () => {
-  const { formProps, saveButtonProps, id } = useForm({});
+  const { formProps, saveButtonProps, formLoading, id } = useForm({});
   const type = Form.useWatch("type", formProps.form);
 
   // --- redeemable codes (promotion_codes) -- without at least one of
@@ -141,7 +141,7 @@ export const PromotionEdit = () => {
   };
 
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonProps} isLoading={formLoading}>
       <Form {...formProps} layout="vertical">
         <Form.Item
           label="Internal code"

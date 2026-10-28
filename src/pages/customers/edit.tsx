@@ -8,7 +8,7 @@ const { Text } = Typography;
 // it's synced from Supabase Auth by a DB trigger, so editing it in this form
 // would silently drift from the customer's real login email.
 export const CustomerEdit = () => {
-  const { formProps, saveButtonProps, query } = useForm({});
+  const { formProps, saveButtonProps, formLoading, query } = useForm({});
   const email = query?.data?.data?.email as string | undefined;
 
   const { selectProps: localeSelectProps } = useSelect({
@@ -18,7 +18,7 @@ export const CustomerEdit = () => {
   });
 
   return (
-    <Edit saveButtonProps={saveButtonProps} canDelete={false}>
+    <Edit saveButtonProps={saveButtonProps} isLoading={formLoading} canDelete={false}>
       <Form.Item label="Email">
         <Input value={email} disabled />
         <Text type="secondary" style={{ fontSize: 12 }}>

@@ -55,5 +55,11 @@ export function useVariants(productId: string | undefined, attributeDefs: { attr
     );
   };
 
-  return { variants, saving: createMutation.isPending || updateMutation.isPending, save, remove };
+  return {
+    variants,
+    loading: query.isLoading,
+    saving: createMutation.isPending || updateMutation.isPending,
+    save,
+    remove,
+  };
 }

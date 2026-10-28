@@ -33,7 +33,7 @@ export const VariantsCard = ({
   attributeDefs: AttributeDef[];
   optionsByAttribute: Map<string, AttributeOption[]>;
 }) => {
-  const { variants, saving, save, remove } = useVariants(productId, attributeDefs);
+  const { variants, loading, saving, save, remove } = useVariants(productId, attributeDefs);
 
   const [form] = Form.useForm();
   const [modalOpen, setModalOpen] = useState(false);
@@ -119,7 +119,7 @@ export const VariantsCard = ({
         </Button>
       }
     >
-      <Table dataSource={variants} rowKey="id" pagination={false} size="small">
+      <Table dataSource={variants} rowKey="id" pagination={false} size="small" loading={loading}>
         <Table.Column dataIndex="sku" title="SKU" />
         <Table.Column
           dataIndex="is_active"

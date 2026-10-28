@@ -2,10 +2,10 @@ import { Edit, useForm } from "@refinedev/antd";
 import { Checkbox, Form, Input, InputNumber } from "antd";
 
 export const ShippingMethodEdit = () => {
-  const { formProps, saveButtonProps } = useForm({});
+  const { formProps, saveButtonProps, formLoading } = useForm({});
 
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonProps} isLoading={formLoading}>
       <Form {...formProps} layout="vertical">
         <Form.Item label="Code" name="code" rules={[{ required: true }]}>
           <Input />

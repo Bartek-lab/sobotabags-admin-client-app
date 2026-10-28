@@ -2,7 +2,7 @@ import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Checkbox, Form, Input, InputNumber, Select } from "antd";
 
 export const AttributeCreate = () => {
-  const { formProps, saveButtonProps } = useForm({ redirect: "edit" });
+  const { formProps, saveButtonProps, formLoading } = useForm({ redirect: "edit" });
   const { selectProps: groupSelectProps } = useSelect({
     resource: "attribute_groups",
     optionLabel: "code",
@@ -10,7 +10,7 @@ export const AttributeCreate = () => {
   });
 
   return (
-    <Create saveButtonProps={saveButtonProps}>
+    <Create saveButtonProps={saveButtonProps} isLoading={formLoading}>
       <Form {...formProps} layout="vertical">
         <Form.Item label="Code" name="code" rules={[{ required: true }]}>
           <Input placeholder="color" />

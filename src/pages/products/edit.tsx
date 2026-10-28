@@ -44,7 +44,7 @@ type TypeAttribute = {
 // app/routers/products.py) because the underlying tables have composite
 // keys generic CRUD can't address.
 export const ProductEdit = () => {
-  const { formProps, saveButtonProps, query } = useForm({});
+  const { formProps, saveButtonProps, formLoading, query } = useForm({});
   const product = query?.data?.data as { product_type_id?: string } | undefined;
   const productId = formProps.initialValues?.id as string | undefined;
 
@@ -137,7 +137,7 @@ export const ProductEdit = () => {
   };
 
   return (
-    <Edit saveButtonProps={saveButtonProps} title="Edit product">
+    <Edit saveButtonProps={saveButtonProps} isLoading={formLoading} title="Edit product">
       <Form {...formProps} layout="vertical">
         <Form.Item label="Status" name="status" rules={[{ required: true }]}>
           <Select

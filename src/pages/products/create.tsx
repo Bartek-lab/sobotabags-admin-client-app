@@ -7,7 +7,7 @@ import { Form, Select } from "antd";
 // added afterwards on the edit screen, which is where the real complexity
 // (and the real custom code) lives.
 export const ProductCreate = () => {
-  const { formProps, saveButtonProps } = useForm({ redirect: "edit" });
+  const { formProps, saveButtonProps, formLoading } = useForm({ redirect: "edit" });
   const { selectProps: typeSelectProps } = useSelect({
     resource: "product_types",
     optionLabel: "name",
@@ -15,7 +15,7 @@ export const ProductCreate = () => {
   });
 
   return (
-    <Create saveButtonProps={saveButtonProps}>
+    <Create saveButtonProps={saveButtonProps} isLoading={formLoading}>
       <Form {...formProps} layout="vertical">
         <Form.Item label="Product type" name="product_type_id" rules={[{ required: true }]}>
           <Select {...typeSelectProps} />

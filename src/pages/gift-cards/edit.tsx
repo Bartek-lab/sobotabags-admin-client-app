@@ -2,10 +2,10 @@ import { Edit, useForm } from "@refinedev/antd";
 import { Form, Input, Select } from "antd";
 
 export const GiftCardEdit = () => {
-  const { formProps, saveButtonProps } = useForm({});
+  const { formProps, saveButtonProps, formLoading } = useForm({});
 
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonProps} isLoading={formLoading}>
       <Form {...formProps} layout="vertical">
         <Form.Item label="Status" name="status" rules={[{ required: true }]}>
           <Select

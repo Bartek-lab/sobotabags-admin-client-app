@@ -1,5 +1,5 @@
 import { useList } from "@refinedev/core";
-import { Button, Card, Checkbox, Radio, Space, Typography } from "antd";
+import { Button, Card, Checkbox, Radio, Space, Spin, Typography } from "antd";
 import { useProductCategories } from "../hooks/use-product-categories";
 
 const { Text } = Typography;
@@ -7,7 +7,7 @@ const { Text } = Typography;
 type Category = { id: string; code: string; parent_id: string | null; is_active: boolean | null };
 
 export const ProductCategoriesCard = ({ productId }: { productId?: string }) => {
-  const { result } = useList<Category>({
+  const { result, query } = useList<Category>({
     resource: "categories",
     pagination: { pageSize: 200 },
     sorters: [{ field: "code", order: "asc" }],
@@ -33,7 +33,9 @@ export const ProductCategoriesCard = ({ productId }: { productId?: string }) => 
       title="Categories"
       extra={<Text type="secondary">Pick which categories this product appears in; one can be primary.</Text>}
     >
-      {categories.length === 0 ? (
+      {query.isLoading ? (
+        <Spin />
+      ) : categories.length === 0 ? (
         <Text type="secondary">No categories defined yet -- create one under Categories first.</Text>
       ) : (
         <Space direction="vertical">

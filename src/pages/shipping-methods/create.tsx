@@ -5,10 +5,10 @@ import { Checkbox, Form, Input, InputNumber } from "antd";
 // every other money column -- getValueProps/normalize do the PLN<->grosze
 // conversion at the form boundary so the admin types "14.99", not "1499".
 export const ShippingMethodCreate = () => {
-  const { formProps, saveButtonProps } = useForm({});
+  const { formProps, saveButtonProps, formLoading } = useForm({});
 
   return (
-    <Create saveButtonProps={saveButtonProps}>
+    <Create saveButtonProps={saveButtonProps} isLoading={formLoading}>
       <Form {...formProps} layout="vertical">
         <Form.Item label="Code" name="code" rules={[{ required: true }]}>
           <Input placeholder="inpost_locker" />

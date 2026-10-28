@@ -9,7 +9,7 @@ const defaultCategories = [
 let categories: typeof defaultCategories = defaultCategories;
 
 vi.mock("@refinedev/core", () => ({
-  useList: () => ({ result: { data: categories } }),
+  useList: () => ({ result: { data: categories }, query: { isLoading: false } }),
 }));
 
 const setCategoryIds = vi.fn();

@@ -19,10 +19,10 @@ const normalizeCode = (value: unknown): unknown => {
 };
 
 export const PromotionCreate = () => {
-  const { formProps, saveButtonProps } = useForm({});
+  const { formProps, saveButtonProps, formLoading } = useForm({});
 
   return (
-    <Create saveButtonProps={saveButtonProps}>
+    <Create saveButtonProps={saveButtonProps} isLoading={formLoading}>
       <Form {...formProps} layout="vertical">
         <Form.Item
           label="Internal code"

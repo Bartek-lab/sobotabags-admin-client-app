@@ -20,7 +20,7 @@ const { Text } = Typography;
 type AttributeOption = { id: string; code: string; sort_order: number | null };
 
 export const AttributeEdit = () => {
-  const { formProps, saveButtonProps, id, query } = useForm({});
+  const { formProps, saveButtonProps, formLoading, id, query } = useForm({});
   const dataType = query?.data?.data?.data_type as string | undefined;
   const { selectProps: groupSelectProps } = useSelect({
     resource: "attribute_groups",
@@ -56,7 +56,7 @@ export const AttributeEdit = () => {
   };
 
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonProps} isLoading={formLoading}>
       <Form {...formProps} layout="vertical">
         <Form.Item label="Code" name="code" rules={[{ required: true }]}>
           <Input />
