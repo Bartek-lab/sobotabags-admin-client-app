@@ -15,6 +15,7 @@ import {
 import { useMemo } from "react";
 import { TranslationsCard } from "../../components/translations-card";
 import { ProductMediaCard } from "../../components/product-media";
+import { ProductCategoriesCard } from "../../components/product-categories-card";
 import { VariantsCard } from "../../components/variants-card";
 import { useProductAttributes } from "../../hooks/use-product-attributes";
 
@@ -155,6 +156,10 @@ export const ProductEdit = () => {
       <Divider />
 
       <ProductMediaCard productId={productId} />
+
+      <Divider />
+
+      <ProductCategoriesCard productId={productId} />
 
       <Divider />
 

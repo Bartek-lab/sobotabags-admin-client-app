@@ -35,12 +35,24 @@ export const AdminGuideDocs = () => {
       children: (
         <>
           <Paragraph>
-            <b>Categories</b> are the storefront navigation tree (supports nesting via sort order). <b>Product
-            types</b> define which attribute axes (color, size, material…) apply to a product and therefore what
-            variant combinations are possible. <b>Attributes</b> are the individual axis values themselves (e.g.
-            the "Color" attribute's values: black, cognac, navy). <b>Tax classes</b> set the VAT rate applied to a
-            product's line items at checkout — as a VAT-exempt private seller this is currently 0%, but the
-            machinery is there if that ever changes.
+            <b>Categories</b> are the storefront navigation tree (supports nesting via <i>parent category</i>).
+            A category only actually filters anything on the storefront once it has a <b>translation</b> with a{" "}
+            <b>slug</b> — set that on the category's edit screen after creating it. The storefront calls{" "}
+            <Text code>GET /products?category=&lt;slug&gt;</Text>, so the slug is what has to match a link (e.g.
+            the homepage's "Torby damskie"/"Torby męskie" sections link to slugs <Text code>women</Text>/
+            <Text code>men</Text> — create those two categories with exactly those slugs to make them work).
+          </Paragraph>
+          <Paragraph>
+            Assigning a <i>product</i> to a category is done on the product's edit screen, in the Categories card:
+            tick every category it should appear in, and optionally mark one as <i>primary</i> (used where only
+            one category per product makes sense, e.g. breadcrumbs).
+          </Paragraph>
+          <Paragraph>
+            <b>Product types</b> define which attribute axes (color, size, material…) apply to a product and
+            therefore what variant combinations are possible. <b>Attributes</b> are the individual axis values
+            themselves (e.g. the "Color" attribute's values: black, cognac, navy). <b>Tax classes</b> set the VAT
+            rate applied to a product's line items at checkout — as a VAT-exempt private seller this is currently
+            0%, but the machinery is there if that ever changes.
           </Paragraph>
           <Paragraph type="secondary">
             Changing a product type's attributes after products already use it can orphan existing variants — add
