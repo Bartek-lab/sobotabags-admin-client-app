@@ -1,4 +1,4 @@
-import { Edit, useForm, useSelect } from "@refinedev/antd";
+import { Edit, useForm } from "@refinedev/antd";
 import { useCreate, useDelete, useList, type HttpError } from "@refinedev/core";
 import {
   Button,
@@ -22,11 +22,6 @@ type AttributeOption = { id: string; code: string; sort_order: number | null };
 export const AttributeEdit = () => {
   const { formProps, saveButtonProps, formLoading, id, query } = useForm({});
   const dataType = query?.data?.data?.data_type as string | undefined;
-  const { selectProps: groupSelectProps } = useSelect({
-    resource: "attribute_groups",
-    optionLabel: "code",
-    optionValue: "id",
-  });
 
   const showOptions = dataType === "select" || dataType === "multiselect";
 
@@ -73,9 +68,6 @@ export const AttributeEdit = () => {
               { label: "Multiselect", value: "multiselect" },
             ]}
           />
-        </Form.Item>
-        <Form.Item label="Group" name="group_id">
-          <Select {...groupSelectProps} allowClear />
         </Form.Item>
         <Form.Item label="Unit (number type only)" name="unit">
           <Input />

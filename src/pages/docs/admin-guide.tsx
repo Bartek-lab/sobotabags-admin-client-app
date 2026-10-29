@@ -13,16 +13,6 @@ export const AdminGuideDocs = () => {
       children: <ProductHandlingGuide />,
     },
     {
-      key: "tax-classes",
-      label: "Tax classes",
-      children: (
-        <Paragraph>
-          <b>Tax classes</b> set the VAT rate applied to a product's line items at checkout — as a VAT-exempt
-          private seller this is currently 0%, but the machinery is there if that ever changes.
-        </Paragraph>
-      ),
-    },
-    {
       key: "orders",
       label: "Orders: viewing, shipping, refunding",
       children: (
@@ -36,6 +26,11 @@ export const AdminGuideDocs = () => {
             and use the shipment card to enter a tracking number and (optionally) a tracking URL. Submitting this
             flips the order's fulfillment status to shipped <i>and</i> immediately sends the customer a shipment
             confirmation email in one step — there's no separate "save" vs "notify", submitting does both.
+          </Paragraph>
+          <Paragraph>
+            <b>After it's shipped:</b> the shipment card stays editable — fix a typo'd tracking number, add a
+            tracking URL you forgot, or tick <b>Dostarczono</b> once the customer actually has the bag. None of
+            these corrections re-sends the shipment email; that only happens once, on the initial "mark as shipped".
           </Paragraph>
           <Paragraph>
             <b>Refunding:</b> on a paid order, use the refund card to issue a partial or full refund. This calls

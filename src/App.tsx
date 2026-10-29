@@ -21,7 +21,6 @@ import routerProvider, {
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
 
-import { TaxClassCreate, TaxClassEdit, TaxClassList } from "./pages/tax-classes";
 import { AttributeCreate, AttributeEdit, AttributeList } from "./pages/attributes";
 import { ProductTypeCreate, ProductTypeEdit, ProductTypeList } from "./pages/product-types";
 import { CategoryCreate, CategoryEdit, CategoryList } from "./pages/categories";
@@ -80,13 +79,6 @@ function App() {
                     create: "/attributes/create",
                     edit: "/attributes/edit/:id",
                     meta: { canDelete: true, label: "Attributes" },
-                  },
-                  {
-                    name: "tax_classes",
-                    list: "/tax-classes",
-                    create: "/tax-classes/create",
-                    edit: "/tax-classes/edit/:id",
-                    meta: { canDelete: true, label: "Tax classes" },
                   },
                   {
                     name: "promotions",
@@ -169,11 +161,6 @@ function App() {
                       <Route index element={<AttributeList />} />
                       <Route path="create" element={<AttributeCreate />} />
                       <Route path="edit/:id" element={<AttributeEdit />} />
-                    </Route>
-                    <Route path="/tax-classes">
-                      <Route index element={<TaxClassList />} />
-                      <Route path="create" element={<TaxClassCreate />} />
-                      <Route path="edit/:id" element={<TaxClassEdit />} />
                     </Route>
                     <Route path="/promotions">
                       <Route index element={<PromotionList />} />

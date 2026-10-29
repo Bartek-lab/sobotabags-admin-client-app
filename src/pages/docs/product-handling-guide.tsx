@@ -64,23 +64,39 @@ const EnglishContent = () => {
             <pre style={{ background: "#fafafa", padding: 12, borderRadius: 6, fontSize: 12.5, overflowX: "auto" }}>
 {`Product Type (e.g. "Handbag")
   └── has Attributes attached at a level:
-        ├── "product"      → one value for the whole product (e.g. material)
-        ├── "variant_axis" → an axis the customer picks (e.g. color, size) -- variants multiply across these
-        └── "variant"      → one value per variant, not customer-chosen (e.g. width in mm)
+        ├── "product" → one value for the whole product (e.g. material)
+        └── "variant" → one value per variant (e.g. color, size, width in mm) -- set when creating
+                         the variant itself, whether or not it's a customer-facing choice
 
 Product (a real listing, e.g. "Shopper Bea")
-  ├── Translations (name, slug, description — per locale)
+  ├── Translation (name, slug, description — Polish only for now)
   ├── Images (ordered, first = storefront listing image)
   ├── product-level Attribute values
   ├── Categories (which storefront sections it shows in)
-  └── Variants ← what customers actually buy: SKU, price, stock, + variant_axis/variant values`}
+  └── Variants ← what customers actually buy: SKU, price, stock, + variant-level attribute values`}
             </pre>
           </Paragraph>
           <Paragraph>
-            <b>Rule of thumb: attribute = a column, variant = a row.</b> "Color" and "Size" are attributes (axes) —
-            but "Black, size M, SKU BAG-001, 450 zł, 3 in stock" is a <i>variant</i>: a real, buyable thing with its
-            own price and stock. A product with zero variants can't be sold.
+            <b>Rule of thumb: attribute = a column, variant = a row.</b> "Color" and "Size" are attributes — but
+            "Black, size M, SKU BAG-001, 450 zł, 3 in stock" is a <i>variant</i>: a real, buyable thing with its own
+            price and stock. A product with zero variants can't be sold.
           </Paragraph>
+          <Alert
+            type="info"
+            showIcon
+            style={{ marginBottom: 12 }}
+            message="Existing color/size attributes"
+            description={
+              <>
+                Color and size were originally attached at a separate "variant axis" level, since removed from the
+                attach-a-new-attribute screen as unneeded complexity — new attributes can only be attached as
+                "product" or "variant" now. Existing ones keep working exactly as before; the only practical
+                difference is that <i>Copy</i> on a variant still clears color/size specifically (so you're forced to
+                pick a new one) but would carry over a value on any newly-attached variant-level attribute, since
+                there's no longer a distinction to key that behavior off of.
+              </>
+            }
+          />
         </>
       ),
     },
@@ -90,12 +106,12 @@ Product (a real listing, e.g. "Shopper Bea")
       children: (
         <ol style={{ paddingLeft: 20, lineHeight: 2 }}>
           <li>
-            <b>Product Types</b> → confirm a matching type exists (e.g. "Handbag"). If not, create one (code, name,
-            shippable, default tax class).
+            <b>Product Types</b> → confirm a matching type exists (e.g. "Handbag"). If not, create one (just code +
+            name).
           </li>
           <li>
             On that type's edit screen, under <i>Attributes</i>, confirm every attribute you'll need is attached, at
-            the right level (product / variant_axis / variant). Missing one? Create it first under{" "}
+            the right level (product / variant). Missing one? Create it first under{" "}
             <b>Attributes → Create</b> (pick a data type — see the table below), then attach it to the type here.
           </li>
           <li>
@@ -107,7 +123,8 @@ Product (a real listing, e.g. "Shopper Bea")
             image.
           </li>
           <li>
-            <b>Translations</b>: name, slug, descriptions, meta — per locale. The slug is what storefront URLs use.
+            <b>Translations</b>: name, slug, descriptions. Only Polish is active for now. Meta title/description are
+            optional — leave them blank and they're auto-filled from name/short description on save.
           </li>
           <li>
             <b>Categories</b>: tick every category this product should appear in; optionally mark one primary. A
@@ -119,9 +136,10 @@ Product (a real listing, e.g. "Shopper Bea")
             <b>Attributes</b> card: fill in product-level values (material, bestseller flag, etc).
           </li>
           <li>
-            <b>Variants</b>: add at least one — SKU, price, stock, shipping dimensions, plus variant_axis/variant
-            attribute values (color, size…). Use <i>Copy</i> to add another color/size of the same bag quickly — it
-            carries over price/dimensions but clears the axis values, since those have to differ.
+            <b>Variants</b>: add at least one — SKU, price, stock, shipping dimensions, plus variant-level attribute
+            values (color, size…). Use <i>Copy</i> to add another color/size of the same bag quickly — it carries
+            over price/dimensions; for color/size specifically it still clears those two so you're forced to pick a
+            new one, since those have to differ between variants.
           </li>
           <li>
             Flip <b>Status</b> to Active once everything above is filled in — a product can't be published without
@@ -152,7 +170,7 @@ Product (a real listing, e.g. "Shopper Bea")
           />
           <Paragraph>
             And a <b>level</b>, set when attaching it to a product type (not on the attribute itself — the same
-            attribute could in theory be product-level on one type and variant_axis on another):
+            attribute could in theory be product-level on one type and variant-level on another):
           </Paragraph>
           <ul>
             <li>
@@ -160,12 +178,9 @@ Product (a real listing, e.g. "Shopper Bea")
               card.
             </li>
             <li>
-              <Text code>variant_axis</Text> — what the customer actually picks (color, size…); each distinct
-              combination needs its own variant.
-            </li>
-            <li>
-              <Text code>variant</Text> — a value that can differ per variant but isn't a customer choice (e.g.
-              exact width in mm for a given size).
+              <Text code>variant</Text> — one value per variant, filled in on that variant (customer-facing choices
+              like color/size and fixed values like exact width in mm are both this level — there's no separate
+              distinction anymore).
             </li>
           </ul>
           <Alert
@@ -219,7 +234,9 @@ Product (a real listing, e.g. "Shopper Bea")
         <>
           <Paragraph>
             Categories form a tree via <i>parent category</i> — purely structural (nav/breadcrumbs), set on a
-            category's own edit screen.
+            category's own edit screen. Each category has exactly one parent (or none); a category list in the
+            admin shows two tables, "Parent categories" above "Child categories" (the latter with a column showing
+            which parent each belongs to), rather than one flat list.
           </Paragraph>
           <Alert
             type="warning"
@@ -273,23 +290,39 @@ const PolishContent = () => {
             <pre style={{ background: "#fafafa", padding: 12, borderRadius: 6, fontSize: 12.5, overflowX: "auto" }}>
 {`Typ produktu (np. "Torebka")
   └── ma przypięte Atrybuty na poziomie:
-        ├── "product"      → jedna wartość dla całego produktu (np. materiał)
-        ├── "variant_axis" → oś, którą wybiera klient (np. kolor, rozmiar) -- warianty mnożą się po tych osiach
-        └── "variant"      → jedna wartość na wariant, nie wybierana przez klienta (np. szerokość w mm)
+        ├── "product" → jedna wartość dla całego produktu (np. materiał)
+        └── "variant" → jedna wartość na wariant (np. kolor, rozmiar, szerokość w mm) -- ustawiana przy
+                         tworzeniu samego wariantu, niezależnie czy to wybór klienta czy nie
 
 Produkt (realny listing, np. "Shopper Bea")
-  ├── Tłumaczenia (nazwa, slug, opis — per język)
+  ├── Tłumaczenie (nazwa, slug, opis — na razie tylko polski)
   ├── Zdjęcia (uporządkowane, pierwsze = zdjęcie listingowe w sklepie)
   ├── Wartości atrybutów na poziomie produktu
   ├── Kategorie (w których sekcjach sklepu się pojawia)
-  └── Warianty ← to, co klient realnie kupuje: SKU, cena, stan magazynowy + wartości variant_axis/variant`}
+  └── Warianty ← to, co klient realnie kupuje: SKU, cena, stan magazynowy + wartości atrybutów na poziomie wariantu`}
             </pre>
           </Paragraph>
           <Paragraph>
-            <b>Zasada: atrybut to kolumna, wariant to wiersz.</b> "Kolor" i "Rozmiar" to atrybuty (osie) — ale
-            "Czarny, rozmiar M, SKU BAG-001, 450 zł, 3 szt. na stanie" to <i>wariant</i>: realna, kupowalna rzecz z
-            własną ceną i stanem magazynowym. Produkt bez żadnego wariantu nie może zostać sprzedany.
+            <b>Zasada: atrybut to kolumna, wariant to wiersz.</b> "Kolor" i "Rozmiar" to atrybuty — ale "Czarny,
+            rozmiar M, SKU BAG-001, 450 zł, 3 szt. na stanie" to <i>wariant</i>: realna, kupowalna rzecz z własną
+            ceną i stanem magazynowym. Produkt bez żadnego wariantu nie może zostać sprzedany.
           </Paragraph>
+          <Alert
+            type="info"
+            showIcon
+            style={{ marginBottom: 12 }}
+            message="Istniejące atrybuty kolor/rozmiar"
+            description={
+              <>
+                Kolor i rozmiar były pierwotnie przypięte na odrębnym poziomie "variant axis", usuniętym z ekranu
+                dodawania nowego atrybutu jako niepotrzebna złożoność -- nowe atrybuty można przypinać tylko jako
+                "product" lub "variant". Istniejące działają dalej bez zmian; jedyna praktyczna różnica: funkcja{" "}
+                <i>Copy</i> na wariancie wciąż czyści konkretnie kolor/rozmiar (żeby wymusić wybranie nowego), ale
+                skopiuje wartość dowolnego nowo przypiętego atrybutu na poziomie wariantu, bo nie ma już rozróżnienia,
+                po którym mogłaby się kierować.
+              </>
+            }
+          />
         </>
       ),
     },
@@ -299,12 +332,12 @@ Produkt (realny listing, np. "Shopper Bea")
       children: (
         <ol style={{ paddingLeft: 20, lineHeight: 2 }}>
           <li>
-            <b>Product Types</b> → sprawdź, czy istnieje pasujący typ (np. "Handbag"). Jeśli nie — utwórz go (code,
-            name, czy wysyłkowy, domyślna klasa podatkowa).
+            <b>Product Types</b> → sprawdź, czy istnieje pasujący typ (np. "Handbag"). Jeśli nie — utwórz go (tylko
+            code + name).
           </li>
           <li>
             Na ekranie edycji tego typu, w sekcji <i>Attributes</i>, upewnij się, że każdy potrzebny atrybut jest
-            przypięty, na właściwym poziomie (product / variant_axis / variant). Brakuje atrybutu? Utwórz go
+            przypięty, na właściwym poziomie (product / variant). Brakuje atrybutu? Utwórz go
             najpierw w <b>Attributes → Create</b> (wybierz typ danych — patrz tabela niżej), potem przypnij go tutaj.
           </li>
           <li>
@@ -315,8 +348,8 @@ Produkt (realny listing, np. "Shopper Bea")
             listingowe w sklepie.
           </li>
           <li>
-            <b>Tłumaczenia</b>: nazwa, slug, opisy, meta — per język. Slug jest tym, czego używają adresy URL w
-            sklepie.
+            <b>Tłumaczenia</b>: nazwa, slug, opisy. Na razie aktywny jest tylko polski. Meta title/description są
+            opcjonalne — zostaw je puste, a zostaną automatycznie uzupełnione z nazwy/krótkiego opisu przy zapisie.
           </li>
           <li>
             <b>Kategorie</b>: zaznacz każdą kategorię, w której produkt ma się pojawić; opcjonalnie oznacz jedną jako
@@ -329,8 +362,9 @@ Produkt (realny listing, np. "Shopper Bea")
           </li>
           <li>
             <b>Warianty</b>: dodaj co najmniej jeden — SKU, cena, stan magazynowy, wymiary wysyłkowe, plus wartości
-            atrybutów variant_axis/variant (kolor, rozmiar...). Użyj <i>Copy</i>, żeby szybko dodać kolejny
-            kolor/rozmiar tej samej torby — kopiuje cenę/wymiary, ale czyści wartości osi, bo te muszą się różnić.
+            atrybutów na poziomie wariantu (kolor, rozmiar...). Użyj <i>Copy</i>, żeby szybko dodać kolejny
+            kolor/rozmiar tej samej torby — kopiuje cenę/wymiary; kolor/rozmiar konkretnie wciąż są czyszczone, bo
+            te muszą się różnić między wariantami.
           </li>
           <li>
             Ustaw <b>Status</b> na Active, gdy wszystko powyżej jest uzupełnione — produkt nie może zostać
@@ -361,7 +395,7 @@ Produkt (realny listing, np. "Shopper Bea")
           />
           <Paragraph>
             Oraz <b>poziom</b>, ustawiany przy przypinaniu go do typu produktu (nie na samym atrybucie — ten sam
-            atrybut teoretycznie mógłby być na poziomie produktu w jednym typie, a variant_axis w innym):
+            atrybut teoretycznie mógłby być na poziomie produktu w jednym typie, a wariantu w innym):
           </Paragraph>
           <ul>
             <li>
@@ -369,12 +403,9 @@ Produkt (realny listing, np. "Shopper Bea")
               produkcie.
             </li>
             <li>
-              <Text code>variant_axis</Text> — to, co realnie wybiera klient (kolor, rozmiar...); każda odrębna
-              kombinacja potrzebuje własnego wariantu.
-            </li>
-            <li>
-              <Text code>variant</Text> — wartość, która może się różnić między wariantami, ale nie jest wyborem
-              klienta (np. dokładna szerokość w mm dla danego rozmiaru).
+              <Text code>variant</Text> — jedna wartość na wariant, uzupełniana przy tym wariancie (zarówno wybór
+              klienta jak kolor/rozmiar, jak i wartość ustalona np. dokładna szerokość w mm — to teraz ten sam
+              poziom, bez rozróżnienia).
             </li>
           </ul>
           <Alert
@@ -429,7 +460,9 @@ Produkt (realny listing, np. "Shopper Bea")
         <>
           <Paragraph>
             Kategorie tworzą drzewo poprzez <i>parent category</i> — to czysto strukturalne (nawigacja/breadcrumbs),
-            ustawiane na ekranie edycji samej kategorii.
+            ustawiane na ekranie edycji samej kategorii. Każda kategoria ma co najwyżej jednego rodzica; lista
+            kategorii w panelu pokazuje dwie tabele, "Parent categories" nad "Child categories" (ta druga z kolumną
+            wskazującą rodzica), a nie jedną płaską listę.
           </Paragraph>
           <Alert
             type="warning"

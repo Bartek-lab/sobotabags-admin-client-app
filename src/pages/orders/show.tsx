@@ -50,6 +50,7 @@ type Order = {
   tracking_number: string | null;
   tracking_url: string | null;
   shipped_at: string | null;
+  delivered_at: string | null;
   created_at: string;
 };
 
@@ -259,6 +260,72 @@ const RefundCard = ({
 // /orders/{id}/ship, which updates the order and fires the
 // shipment-confirmation email in one action. See
 // admin-api/app/services/shipment_service.py.
+// Once shipped, tracking info stays editable (and delivered status
+// toggleable) -- the original "ship" action is one-way and idempotent
+// (can't be re-triggered to fix a typo), so corrections go through a
+// separate endpoint that deliberately has no email side effect: fixing a
+// mistake or marking delivered isn't a new event the customer needs an
+// email about.
+const ShippedEditCard = ({ order, onSaved }: { order: Order; onSaved: () => void }) => {
+  const [trackingNumber, setTrackingNumber] = useState(order.tracking_number ?? "");
+  const [trackingUrl, setTrackingUrl] = useState(order.tracking_url ?? "");
+  const [delivered, setDelivered] = useState(!!order.delivered_at);
+  const { mutate, mutation } = useCustomMutation();
+
+  useEffect(() => {
+    setTrackingNumber(order.tracking_number ?? "");
+    setTrackingUrl(order.tracking_url ?? "");
+    setDelivered(!!order.delivered_at);
+  }, [order.tracking_number, order.tracking_url, order.delivered_at]);
+
+  const save = () => {
+    mutate(
+      {
+        url: `${API_URL}/orders/${order.id}/shipment`,
+        method: "patch",
+        values: { tracking_number: trackingNumber, tracking_url: trackingUrl || undefined, delivered },
+        config: { headers: { "Content-Type": "application/json" } },
+      },
+      {
+        onSuccess: () => {
+          message.success("Zapisano zmiany.");
+          onSaved();
+        },
+      },
+    );
+  };
+
+  return (
+    <Card title="Wysyłka" size="small" style={{ marginTop: 16 }}>
+      <Descriptions bordered column={1} size="small">
+        <Descriptions.Item label="Wysłano">
+          {order.shipped_at ? new Date(order.shipped_at).toLocaleString() : "--"}
+        </Descriptions.Item>
+        <Descriptions.Item label="Numer przesyłki">
+          <Input
+            value={trackingNumber}
+            onChange={(e) => setTrackingNumber(e.target.value)}
+            placeholder="np. KAXI01BAPP lub numer listu przewozowego"
+          />
+        </Descriptions.Item>
+        <Descriptions.Item label="Link do śledzenia (opcjonalnie)">
+          <Input value={trackingUrl} onChange={(e) => setTrackingUrl(e.target.value)} placeholder="https://..." />
+        </Descriptions.Item>
+        <Descriptions.Item label="Dostarczono">
+          <Checkbox checked={delivered} onChange={(e) => setDelivered(e.target.checked)}>
+            {delivered && order.delivered_at
+              ? `Tak, ${new Date(order.delivered_at).toLocaleString()}`
+              : "Jeszcze nie"}
+          </Checkbox>
+        </Descriptions.Item>
+      </Descriptions>
+      <Button type="primary" style={{ marginTop: 12 }} loading={mutation.isPending} onClick={save}>
+        Zapisz zmiany
+      </Button>
+    </Card>
+  );
+};
+
 export const ShipmentCard = ({ order, onShipped }: { order: Order; onShipped: () => void }) => {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [trackingUrl, setTrackingUrl] = useState("");
@@ -289,23 +356,7 @@ export const ShipmentCard = ({ order, onShipped }: { order: Order; onShipped: ()
   };
 
   if (order.fulfillment_status === "fulfilled") {
-    return (
-      <Card title="Wysyłka" size="small" style={{ marginTop: 16 }}>
-        <Descriptions bordered column={1} size="small">
-          <Descriptions.Item label="Wysłano">
-            {order.shipped_at ? new Date(order.shipped_at).toLocaleString() : "--"}
-          </Descriptions.Item>
-          <Descriptions.Item label="Numer przesyłki">{order.tracking_number ?? "--"}</Descriptions.Item>
-          {order.tracking_url && (
-            <Descriptions.Item label="Śledzenie">
-              <a href={order.tracking_url} target="_blank" rel="noreferrer">
-                {order.tracking_url}
-              </a>
-            </Descriptions.Item>
-          )}
-        </Descriptions>
-      </Card>
-    );
+    return <ShippedEditCard order={order} onSaved={onShipped} />;
   }
 
   return (
@@ -506,7 +557,7 @@ export const OrderShow = () => {
                 </div>
               )}
             </Descriptions.Item>
-            {discounts && discounts.gift_cards.length > 0 && (
+            {Array.isArray(discounts?.gift_cards) && discounts.gift_cards.length > 0 && (
               <Descriptions.Item label="Gift card(s) used">
                 {discounts.gift_cards.map((gc) => (
                   <div key={gc.code}>

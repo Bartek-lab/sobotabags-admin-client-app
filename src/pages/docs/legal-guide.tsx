@@ -44,7 +44,9 @@ export const LegalGuideDocs = () => {
           You operate under the VAT <b>subjective exemption</b> (zwolnienie podmiotowe, Art. 113 ustawy o VAT) —
           available while annual sales stay under 200 000 zł. This is separate from the nierejestrowana revenue
           cap above and has its own threshold and its own tracking. Invoices/receipts you issue should not show
-          VAT; tax classes in this panel are accordingly configured at 0%.
+          VAT. The shop currently sells only within Poland, so the tax-class UI is hidden from this panel entirely
+          rather than exposed and set to 0% -- the backend still has the machinery (a <Text code>tax_classes</Text>{" "}
+          table and the columns on products/product types) if cross-border selling or VAT status ever changes.
         </Paragraph>
       ),
     },

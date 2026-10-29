@@ -1,4 +1,4 @@
-import { Edit, useForm, useSelect } from "@refinedev/antd";
+import { Edit, useForm } from "@refinedev/antd";
 import { useList } from "@refinedev/core";
 import {
   Button,
@@ -47,12 +47,6 @@ export const ProductEdit = () => {
   const { formProps, saveButtonProps, formLoading, query } = useForm({});
   const product = query?.data?.data as { product_type_id?: string } | undefined;
   const productId = formProps.initialValues?.id as string | undefined;
-
-  const { selectProps: taxClassSelectProps } = useSelect({
-    resource: "tax_classes",
-    optionLabel: "name",
-    optionValue: "id",
-  });
 
   const { result: attributesResult } = useList<Attribute>({
     resource: "attributes",
@@ -147,9 +141,6 @@ export const ProductEdit = () => {
               { label: "Archived", value: "archived" },
             ]}
           />
-        </Form.Item>
-        <Form.Item label="Tax class" name="tax_class_id">
-          <Select {...taxClassSelectProps} allowClear />
         </Form.Item>
       </Form>
 

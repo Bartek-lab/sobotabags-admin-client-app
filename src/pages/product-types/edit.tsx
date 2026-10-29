@@ -25,12 +25,6 @@ type TypeAttributeRow = {
 
 export const ProductTypeEdit = () => {
   const { formProps, saveButtonProps, formLoading, id } = useForm({});
-  const { selectProps: taxClassSelectProps } = useSelect({
-    resource: "tax_classes",
-    optionLabel: "name",
-    optionValue: "id",
-  });
-
   const { selectProps: attributeSelectProps } = useSelect({
     resource: "attributes",
     optionLabel: "code",
@@ -97,12 +91,6 @@ export const ProductTypeEdit = () => {
         <Form.Item label="Name" name="name" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
-        <Form.Item label="Shippable" name="is_shippable" valuePropName="checked">
-          <Checkbox />
-        </Form.Item>
-        <Form.Item label="Default tax class" name="default_tax_class_id">
-          <Select {...taxClassSelectProps} allowClear />
-        </Form.Item>
       </Form>
 
       <Divider />
@@ -145,7 +133,6 @@ export const ProductTypeEdit = () => {
               style={{ width: 140 }}
               options={[
                 { label: "Product", value: "product" },
-                { label: "Variant axis", value: "variant_axis" },
                 { label: "Variant", value: "variant" },
               ]}
             />

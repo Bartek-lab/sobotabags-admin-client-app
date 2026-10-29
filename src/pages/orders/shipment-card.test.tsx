@@ -52,6 +52,7 @@ const baseOrder = {
   tracking_number: null,
   tracking_url: null,
   shipped_at: null,
+  delivered_at: null,
   created_at: "2026-10-27T00:00:00Z",
 };
 
@@ -62,15 +63,52 @@ describe("ShipmentCard", () => {
     messageWarning.mockClear();
   });
 
-  it("shows the fulfilled summary (not the form) once the order is already shipped", () => {
+  it("shows an editable, pre-filled form (not read-only) once the order is already shipped", () => {
     render(
       <ShipmentCard
         order={{ ...baseOrder, fulfillment_status: "fulfilled", tracking_number: "KAXI01BAPP" }}
         onShipped={vi.fn()}
       />,
     );
-    expect(screen.getByText("KAXI01BAPP")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /zapisz zmiany/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /oznacz jako wysłane/i })).not.toBeInTheDocument();
+    const input = screen.getByDisplayValue("KAXI01BAPP") as HTMLInputElement;
+    expect(input).toBeInTheDocument();
+  });
+
+  it("saves corrected tracking info and the delivered flag via PATCH .../shipment, without resending an email", () => {
+    mutateMock.mockImplementation(() => {});
+    render(
+      <ShipmentCard
+        order={{ ...baseOrder, fulfillment_status: "fulfilled", tracking_number: "OLD123" }}
+        onShipped={vi.fn()}
+      />,
+    );
+
+    const input = screen.getByDisplayValue("OLD123");
+    fireEvent.change(input, { target: { value: "FIXED456" } });
+    fireEvent.click(screen.getByLabelText(/jeszcze nie/i));
+    fireEvent.click(screen.getByRole("button", { name: /zapisz zmiany/i }));
+
+    const [args] = mutateMock.mock.calls[0];
+    expect(args.url).toContain(`/orders/${baseOrder.id}/shipment`);
+    expect(args.method).toBe("patch");
+    expect(args.values).toEqual({ tracking_number: "FIXED456", tracking_url: undefined, delivered: true });
+  });
+
+  it("shows the delivered timestamp once delivered_at is set", () => {
+    render(
+      <ShipmentCard
+        order={{
+          ...baseOrder,
+          fulfillment_status: "fulfilled",
+          tracking_number: "ABC123",
+          delivered_at: "2026-10-29T12:00:00Z",
+        }}
+        onShipped={vi.fn()}
+      />,
+    );
+    expect(screen.getByLabelText(/tak,/i)).toBeInTheDocument();
   });
 
   it("disables the submit button until a tracking number is entered", () => {

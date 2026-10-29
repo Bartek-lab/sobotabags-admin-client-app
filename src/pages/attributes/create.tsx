@@ -1,13 +1,8 @@
-import { Create, useForm, useSelect } from "@refinedev/antd";
+import { Create, useForm } from "@refinedev/antd";
 import { Checkbox, Form, Input, InputNumber, Select } from "antd";
 
 export const AttributeCreate = () => {
   const { formProps, saveButtonProps, formLoading } = useForm({ redirect: "edit" });
-  const { selectProps: groupSelectProps } = useSelect({
-    resource: "attribute_groups",
-    optionLabel: "code",
-    optionValue: "id",
-  });
 
   return (
     <Create saveButtonProps={saveButtonProps} isLoading={formLoading}>
@@ -27,9 +22,6 @@ export const AttributeCreate = () => {
               { label: "Multiselect", value: "multiselect" },
             ]}
           />
-        </Form.Item>
-        <Form.Item label="Group" name="group_id">
-          <Select {...groupSelectProps} allowClear />
         </Form.Item>
         <Form.Item label="Unit (number type only)" name="unit">
           <Input placeholder="cm" />

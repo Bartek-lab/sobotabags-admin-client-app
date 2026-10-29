@@ -100,7 +100,10 @@ export const PromotionEdit = () => {
   const [currencyForm] = Form.useForm();
 
   useEffect(() => {
-    if (currencyValueResult?.data) {
+    // useCustom's result.data defaults to an EMPTY_OBJECT (`{}`, truthy)
+    // before the fetch resolves, not undefined -- guard on a real field
+    // instead of truthiness, or this briefly sets amount_off to NaN.
+    if (currencyValueResult?.data?.amount_off !== undefined) {
       currencyForm.setFieldsValue({
         amount_off: currencyValueResult.data.amount_off / 100,
         min_subtotal: currencyValueResult.data.min_subtotal != null ? currencyValueResult.data.min_subtotal / 100 : undefined,
