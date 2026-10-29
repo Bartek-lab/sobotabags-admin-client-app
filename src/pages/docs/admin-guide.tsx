@@ -1,4 +1,5 @@
 import { Alert, Collapse, Tag, Typography } from "antd";
+import { ProductHandlingGuide } from "./product-handling-guide";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -8,57 +9,17 @@ export const AdminGuideDocs = () => {
   const items = [
     {
       key: "products",
-      label: "Adding and managing products",
-      children: (
-        <>
-          <Paragraph>
-            Go to <b>Products → Create</b>. Each product needs: a product type (defines which attributes apply —
-            e.g. "Bag" might have color/size axes), translations (name/description per locale), and at least one
-            <b> variant</b>. Variants are what actually carry price, stock and SKU — a product with no variants
-            can't be sold.
-          </Paragraph>
-          <Paragraph>
-            Upload images on the product edit page; the first image is used as the primary/listing image on the
-            storefront. Categories are assigned separately and control where the product appears in storefront
-            navigation — a product can belong to more than one.
-          </Paragraph>
-          <Paragraph>
-            To take a product off the storefront without deleting it, toggle it inactive rather than deleting —
-            deleting a product that has existing orders referencing it will break order history.
-          </Paragraph>
-        </>
-      ),
+      label: "Product handling: categories, attributes, sort orders, data types",
+      children: <ProductHandlingGuide />,
     },
     {
-      key: "categories",
-      label: "Categories, product types, attributes, tax classes",
+      key: "tax-classes",
+      label: "Tax classes",
       children: (
-        <>
-          <Paragraph>
-            <b>Categories</b> are the storefront navigation tree (supports nesting via <i>parent category</i>).
-            A category only actually filters anything on the storefront once it has a <b>translation</b> with a{" "}
-            <b>slug</b> — set that on the category's edit screen after creating it. The storefront calls{" "}
-            <Text code>GET /products?category=&lt;slug&gt;</Text>, so the slug is what has to match a link (e.g.
-            the homepage's "Torby damskie"/"Torby męskie" sections link to slugs <Text code>women</Text>/
-            <Text code>men</Text> — create those two categories with exactly those slugs to make them work).
-          </Paragraph>
-          <Paragraph>
-            Assigning a <i>product</i> to a category is done on the product's edit screen, in the Categories card:
-            tick every category it should appear in, and optionally mark one as <i>primary</i> (used where only
-            one category per product makes sense, e.g. breadcrumbs).
-          </Paragraph>
-          <Paragraph>
-            <b>Product types</b> define which attribute axes (color, size, material…) apply to a product and
-            therefore what variant combinations are possible. <b>Attributes</b> are the individual axis values
-            themselves (e.g. the "Color" attribute's values: black, cognac, navy). <b>Tax classes</b> set the VAT
-            rate applied to a product's line items at checkout — as a VAT-exempt private seller this is currently
-            0%, but the machinery is there if that ever changes.
-          </Paragraph>
-          <Paragraph type="secondary">
-            Changing a product type's attributes after products already use it can orphan existing variants — add
-            new attribute values rather than removing ones already in use where possible.
-          </Paragraph>
-        </>
+        <Paragraph>
+          <b>Tax classes</b> set the VAT rate applied to a product's line items at checkout — as a VAT-exempt
+          private seller this is currently 0%, but the machinery is there if that ever changes.
+        </Paragraph>
       ),
     },
     {
