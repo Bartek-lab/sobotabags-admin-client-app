@@ -142,6 +142,22 @@ export const ProductEdit = () => {
             ]}
           />
         </Form.Item>
+        <Form.Item
+          label="Weight (g)"
+          name="ship_weight_g"
+          extra="Shipping package dimensions -- one set per product, not per variant, since color doesn't change the box."
+        >
+          <InputNumber min={1} style={{ width: "100%" }} />
+        </Form.Item>
+        <Form.Item label="Length (mm)" name="ship_length_mm">
+          <InputNumber min={1} style={{ width: "100%" }} />
+        </Form.Item>
+        <Form.Item label="Width (mm)" name="ship_width_mm">
+          <InputNumber min={1} style={{ width: "100%" }} />
+        </Form.Item>
+        <Form.Item label="Height (mm)" name="ship_height_mm">
+          <InputNumber min={1} style={{ width: "100%" }} />
+        </Form.Item>
       </Form>
 
       <Divider />

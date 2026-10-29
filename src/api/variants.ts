@@ -6,10 +6,6 @@ export type Variant = {
   sku: string;
   is_active: boolean;
   quantity_on_hand: number;
-  ship_weight_g: number | null;
-  ship_length_mm: number | null;
-  ship_width_mm: number | null;
-  ship_height_mm: number | null;
   price_amount: number | null;
   attributes: VariantAttributeValue[];
 };
@@ -34,10 +30,6 @@ export function toVariantPayload(
     sku: values.sku,
     is_active: !!values.is_active,
     quantity_on_hand: values.quantity_on_hand ?? 0,
-    ship_weight_g: values.ship_weight_g ?? null,
-    ship_length_mm: values.ship_length_mm ?? null,
-    ship_width_mm: values.ship_width_mm ?? null,
-    ship_height_mm: values.ship_height_mm ?? null,
     price_amount:
       values.price !== undefined && values.price !== null
         ? Math.round((values.price as number) * 100)

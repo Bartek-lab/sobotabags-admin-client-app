@@ -1,4 +1,4 @@
-import { Edit, useForm, useSelect } from "@refinedev/antd";
+import { Edit, useForm } from "@refinedev/antd";
 import { useCreate, useList, type HttpError } from "@refinedev/core";
 import {
   Button,
@@ -14,7 +14,7 @@ import {
 } from "antd";
 import { useRemoveProductTypeAttribute } from "../../hooks/use-product-type-attributes";
 
-type Attribute = { id: string; code: string };
+type Attribute = { id: string; code: string; data_type: string };
 type TypeAttributeRow = {
   product_type_id: string;
   attribute_id: string;
@@ -25,19 +25,13 @@ type TypeAttributeRow = {
 
 export const ProductTypeEdit = () => {
   const { formProps, saveButtonProps, formLoading, id } = useForm({});
-  const { selectProps: attributeSelectProps } = useSelect({
-    resource: "attributes",
-    optionLabel: "code",
-    optionValue: "id",
-  });
 
   const { result: attributesResult } = useList<Attribute>({
     resource: "attributes",
     pagination: { pageSize: 200 },
   });
-  const attributeCodeById = new Map(
-    (attributesResult?.data ?? []).map((a) => [a.id, a.code]),
-  );
+  const attributes = attributesResult?.data ?? [];
+  const attributeCodeById = new Map(attributes.map((a) => [a.id, a.code]));
 
   const { result: typeAttrsResult, query: typeAttrsQuery } = useList<TypeAttributeRow>({
     resource: "product_type_attributes",
@@ -50,6 +44,24 @@ export const ProductTypeEdit = () => {
   const { mutate: createAssociation } = useCreate();
   const removeAssociation = useRemoveProductTypeAttribute(id as string | undefined, () => typeAttrsQuery.refetch());
   const [addForm] = Form.useForm();
+  const selectedLevel = Form.useWatch("level", addForm);
+
+  // multiselect can't be attached at variant level -- variant_attribute_values
+  // holds exactly one value per variant+attribute (enforced by
+  // trg_product_type_attributes_check, same rule as "variant axis must be
+  // select"). Filtered out of the list here so it's never selectable in the
+  // first place, not just rejected after submitting.
+  const availableAttributes = attributes.filter(
+    (a) => !(selectedLevel === "variant" && a.data_type === "multiselect"),
+  );
+
+  const onLevelChange = (level: string) => {
+    const attrId = addForm.getFieldValue("attribute_id");
+    const attr = attributes.find((a) => a.id === attrId);
+    if (level === "variant" && attr?.data_type === "multiselect") {
+      addForm.setFieldValue("attribute_id", undefined);
+    }
+  };
 
   const onAdd = (values: {
     attribute_id: string;
@@ -126,11 +138,21 @@ export const ProductTypeEdit = () => {
 
         <Form form={addForm} layout="inline" onFinish={onAdd}>
           <Form.Item name="attribute_id" rules={[{ required: true }]}>
-            <Select {...attributeSelectProps} style={{ width: 160 }} placeholder="Attribute" />
+            <Select
+              style={{ width: 160 }}
+              placeholder="Attribute"
+              options={availableAttributes.map((a) => ({ label: a.code, value: a.id }))}
+            />
           </Form.Item>
-          <Form.Item name="level" rules={[{ required: true }]} initialValue="product">
+          <Form.Item
+            name="level"
+            rules={[{ required: true }]}
+            initialValue="product"
+            extra="Multiselect attributes can only be product-level."
+          >
             <Select
               style={{ width: 140 }}
+              onChange={onLevelChange}
               options={[
                 { label: "Product", value: "product" },
                 { label: "Variant", value: "variant" },

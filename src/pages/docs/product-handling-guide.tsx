@@ -119,6 +119,10 @@ Product (a real listing, e.g. "Shopper Bea")
             happens there.
           </li>
           <li>
+            <b>Weight/Length/Width/Height</b> at the top of the edit screen: the shipping package's physical
+            dimensions. One set per product, not per variant — color doesn't change the box.
+          </li>
+          <li>
             <b>Images</b>: upload (jpeg/png/webp, min 800×800px, max 5MB, up to 5). First image = storefront listing
             image.
           </li>
@@ -136,10 +140,10 @@ Product (a real listing, e.g. "Shopper Bea")
             <b>Attributes</b> card: fill in product-level values (material, bestseller flag, etc).
           </li>
           <li>
-            <b>Variants</b>: add at least one — SKU, price, stock, shipping dimensions, plus variant-level attribute
-            values (color, size…). Use <i>Copy</i> to add another color/size of the same bag quickly — it carries
-            over price/dimensions; for color/size specifically it still clears those two so you're forced to pick a
-            new one, since those have to differ between variants.
+            <b>Variants</b>: add at least one — SKU, price, stock, plus variant-level attribute values (color,
+            size…). Use <i>Copy</i> to add another color/size of the same bag quickly — it carries over price; for
+            color/size specifically it still clears those two so you're forced to pick a new one, since those have
+            to differ between variants.
           </li>
           <li>
             Flip <b>Status</b> to Active once everything above is filled in — a product can't be published without
@@ -344,6 +348,10 @@ Produkt (realny listing, np. "Shopper Bea")
             <b>Products → Create</b>: wybierz typ produktu, zapisz. Trafisz na ekran edycji — reszta dzieje się tam.
           </li>
           <li>
+            <b>Weight/Length/Width/Height</b> na górze ekranu edycji: fizyczne wymiary paczki wysyłkowej. Jeden
+            zestaw na produkt, nie na wariant — kolor nie zmienia rozmiaru pudełka.
+          </li>
+          <li>
             <b>Zdjęcia</b>: wgraj (jpeg/png/webp, min 800×800px, max 5MB, do 5 sztuk). Pierwsze zdjęcie = zdjęcie
             listingowe w sklepie.
           </li>
@@ -361,10 +369,10 @@ Produkt (realny listing, np. "Shopper Bea")
             Karta <b>Attributes</b>: uzupełnij wartości na poziomie produktu (materiał, flaga bestseller itd).
           </li>
           <li>
-            <b>Warianty</b>: dodaj co najmniej jeden — SKU, cena, stan magazynowy, wymiary wysyłkowe, plus wartości
-            atrybutów na poziomie wariantu (kolor, rozmiar...). Użyj <i>Copy</i>, żeby szybko dodać kolejny
-            kolor/rozmiar tej samej torby — kopiuje cenę/wymiary; kolor/rozmiar konkretnie wciąż są czyszczone, bo
-            te muszą się różnić między wariantami.
+            <b>Warianty</b>: dodaj co najmniej jeden — SKU, cena, stan magazynowy, plus wartości atrybutów na
+            poziomie wariantu (kolor, rozmiar...). Użyj <i>Copy</i>, żeby szybko dodać kolejny kolor/rozmiar tej
+            samej torby — kopiuje cenę; kolor/rozmiar konkretnie wciąż są czyszczone, bo te muszą się różnić między
+            wariantami.
           </li>
           <li>
             Ustaw <b>Status</b> na Active, gdy wszystko powyżej jest uzupełnione — produkt nie może zostać

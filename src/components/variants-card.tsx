@@ -51,10 +51,6 @@ export const VariantsCard = ({
         sku: editing.sku,
         is_active: editing.is_active,
         quantity_on_hand: editing.quantity_on_hand,
-        ship_weight_g: editing.ship_weight_g,
-        ship_length_mm: editing.ship_length_mm,
-        ship_width_mm: editing.ship_width_mm,
-        ship_height_mm: editing.ship_height_mm,
         price: editing.price_amount != null ? editing.price_amount / 100 : undefined,
       };
       for (const av of editing.attributes) initial[av.attribute_id] = av.value;
@@ -64,10 +60,6 @@ export const VariantsCard = ({
         sku: "",
         is_active: true,
         quantity_on_hand: 0,
-        ship_weight_g: copyingFrom.ship_weight_g,
-        ship_length_mm: copyingFrom.ship_length_mm,
-        ship_width_mm: copyingFrom.ship_width_mm,
-        ship_height_mm: copyingFrom.ship_height_mm,
         price: copyingFrom.price_amount != null ? copyingFrom.price_amount / 100 : undefined,
       };
       // Only carry over scalar (level="variant") values, e.g. width/height/
@@ -203,18 +195,6 @@ export const VariantsCard = ({
           </Form.Item>
           <Form.Item label="Price" name="price" extra="In whole currency units, e.g. 100 = 100.00">
             <InputNumber min={0} step={1} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item label="Weight (g)" name="ship_weight_g">
-            <InputNumber min={1} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item label="Length (mm)" name="ship_length_mm">
-            <InputNumber min={1} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item label="Width (mm)" name="ship_width_mm">
-            <InputNumber min={1} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item label="Height (mm)" name="ship_height_mm">
-            <InputNumber min={1} style={{ width: "100%" }} />
           </Form.Item>
 
           {attributeDefs.map((def) => {
