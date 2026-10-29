@@ -47,13 +47,16 @@ export const ProductCategoriesCard = ({ productId }: { productId?: string }) => 
               const checked = categoryIds.includes(c.id);
               const parentLabel = parent ? (parent.name ?? parent.code) : null;
               return (
-                <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div
+                  key={c.id}
+                  style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}
+                >
                   <Checkbox checked={checked} onChange={(e) => toggle(c.id, e.target.checked)} />
-                  <span>
+                  <Text style={{ flex: "1 1 auto", minWidth: "max-content" }}>
                     {parentLabel ? `${parentLabel} / ` : ""}
                     {c.name ?? c.code}
                     {c.is_active === false ? <Text type="secondary"> (inactive)</Text> : null}
-                  </span>
+                  </Text>
                   {c.name === null && (
                     <Tag color="warning" title="Add a translation on this category's edit screen -- it won't show on the storefront until it has one.">
                       no translation yet
