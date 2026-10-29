@@ -171,8 +171,14 @@ export const ProductEdit = () => {
           { name: "slug", label: "Slug", required: true },
           { name: "short_description", label: "Short description", type: "textarea" },
           { name: "description", label: "Description (HTML)", type: "textarea" },
-          { name: "meta_title", label: "Meta title" },
-          { name: "meta_description", label: "Meta description", type: "textarea" },
+          { name: "meta_title", label: "Meta title", seo: true, autoFillFrom: "name" },
+          {
+            name: "meta_description",
+            label: "Meta description",
+            type: "textarea",
+            seo: true,
+            autoFillFrom: "short_description",
+          },
         ]}
       />
 

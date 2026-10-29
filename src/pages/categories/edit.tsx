@@ -40,8 +40,14 @@ export const CategoryEdit = () => {
           { name: "name", label: "Name", required: true },
           { name: "slug", label: "Slug", required: true },
           { name: "description", label: "Description", type: "textarea" },
-          { name: "meta_title", label: "Meta title" },
-          { name: "meta_description", label: "Meta description", type: "textarea" },
+          { name: "meta_title", label: "Meta title", seo: true, autoFillFrom: "name" },
+          {
+            name: "meta_description",
+            label: "Meta description",
+            type: "textarea",
+            seo: true,
+            autoFillFrom: "description",
+          },
         ]}
       />
     </Edit>

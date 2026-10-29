@@ -23,7 +23,13 @@ export function useProductCategories(productId: string | undefined) {
     if (!Array.isArray(result?.data)) return;
     setCategoryIds(result.data.map((v) => v.category_id));
     setPrimaryId(result.data.find((v) => v.is_primary)?.category_id ?? null);
-  }, [result]);
+    // Depend on result.data (react-query's own memoized array), not result
+    // itself -- useCustom wraps it in a brand-new `{ data: ... }` object
+    // literal on every render, so depending on `result` made this effect
+    // (and its setState calls) fire every single render, an infinite loop
+    // confirmed live as a "Maximum update depth exceeded" crash.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.data]);
 
   const save = () => {
     mutate(

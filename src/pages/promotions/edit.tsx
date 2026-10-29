@@ -106,7 +106,13 @@ export const PromotionEdit = () => {
         min_subtotal: currencyValueResult.data.min_subtotal != null ? currencyValueResult.data.min_subtotal / 100 : undefined,
       });
     }
-  }, [currencyValueResult, currencyForm]);
+    // Depend on currencyValueResult.data (react-query's own memoized
+    // value), not currencyValueResult itself -- useCustom wraps it in a
+    // brand-new `{ data: ... }` object literal on every render, so
+    // depending on the whole object fires this effect every render, an
+    // infinite loop ("Maximum update depth exceeded").
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currencyValueResult?.data, currencyForm]);
 
   const onSaveCurrencyValue = (values: { amount_off: number; min_subtotal?: number }) => {
     const exists = !!currencyValueResult?.data;

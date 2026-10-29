@@ -4,7 +4,32 @@ import { message, type FormInstance } from "antd";
 import { slugify, translationsUrl, type TranslationRow } from "../api/translations";
 
 type Locale = { code: string; name: string; is_active: boolean | null };
-export type TranslationField = { name: string; label: string; type?: "text" | "textarea"; required?: boolean };
+export type TranslationField = {
+  name: string;
+  label: string;
+  type?: "text" | "textarea";
+  required?: boolean;
+  // Tucked into a collapsed "SEO (optional)" section instead of shown inline.
+  seo?: boolean;
+  // When this field is left blank, its value is derived from another
+  // field's value on save (e.g. meta_title <- name) instead of staying
+  // empty -- the admin never has to fill in SEO fields unless they want to
+  // override the default.
+  autoFillFrom?: string;
+};
+
+const META_DESCRIPTION_MAX_LENGTH = 160;
+
+function stripHtml(value: string): string {
+  return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function deriveAutoFillValue(field: TranslationField, sourceValue: unknown): unknown {
+  if (typeof sourceValue !== "string" || !sourceValue) return sourceValue;
+  const plain = stripHtml(sourceValue);
+  if (field.name === "meta_description") return plain.slice(0, META_DESCRIPTION_MAX_LENGTH);
+  return plain;
+}
 
 export function translationFieldKey(locale: string, field: string) {
   return `${locale}__${field}`;
@@ -39,8 +64,13 @@ export function useTranslations(
       }
     }
     form.setFieldsValue(initial);
+    // Depend on translationsResult.data (react-query's own memoized array),
+    // not translationsResult itself -- useCustom wraps it in a brand-new
+    // `{ data: ... }` object literal on every render, so depending on the
+    // whole object fires this effect every render, an infinite loop
+    // ("Maximum update depth exceeded").
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [translationsResult, form]);
+  }, [translationsResult?.data, form]);
 
   const save = (values: Record<string, unknown>) => {
     const payload = locales.map((l) => {
@@ -48,6 +78,13 @@ export function useTranslations(
       for (const f of fields) {
         const raw = values[translationFieldKey(l.code, f.name)];
         row[f.name] = f.name === "slug" ? slugify(raw) : raw;
+      }
+      // Second pass: fields left blank fall back to another field's value
+      // (e.g. meta_title <- name) -- done after the first pass so the
+      // source value is already in `row` regardless of field order.
+      for (const f of fields) {
+        if (!f.autoFillFrom || row[f.name]) continue;
+        row[f.name] = deriveAutoFillValue(f, row[f.autoFillFrom]);
       }
       return row;
     });

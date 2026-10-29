@@ -25,7 +25,12 @@ export function useProductAttributes(productId: string | undefined, form: FormIn
       initial[v.attribute_id] = v.data_type === "date" && v.value ? dayjs(v.value as string) : v.value;
     }
     form.setFieldsValue(initial);
-  }, [result, form]);
+    // Depend on result.data (react-query's own memoized array), not result
+    // itself -- useCustom wraps it in a brand-new `{ data: ... }` object
+    // literal on every render, so depending on `result` fires this effect
+    // every render, an infinite loop ("Maximum update depth exceeded").
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.data, form]);
 
   const save = (values: Record<string, unknown>, productAttributes: ProductAttributeDef[]) => {
     const payload = productAttributes
