@@ -5,7 +5,10 @@ import {
   useState,
 } from "react";
 import { ConfigProvider, theme } from "antd";
-import { RefineThemes } from "@refinedev/antd";
+
+// Same "leather" accent as shop-client's oklch(0.56 0.105 51) / oklch(0.7 0.115 54)
+// tokens (app/globals.css), converted to sRGB hex for antd.
+const LEATHER = { light: "#A56137", dark: "#D68A56" };
 
 type ColorModeContextType = {
   mode: string;
@@ -51,9 +54,8 @@ export const ColorModeContextProvider: React.FC<PropsWithChildren> = ({
       }}
     >
       <ConfigProvider
-        // you can change the theme colors here. example: ...RefineThemes.Magenta,
         theme={{
-          ...RefineThemes.Blue,
+          token: { colorPrimary: mode === "light" ? LEATHER.light : LEATHER.dark },
           algorithm: mode === "light" ? defaultAlgorithm : darkAlgorithm,
         }}
       >

@@ -36,6 +36,7 @@ import { DocsPage } from "./pages/docs";
 
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import { Header } from "./components/header";
+import { Logo } from "./components/logo";
 import { dataProvider } from "./providers/data";
 import { authProvider } from "./providers/auth";
 
@@ -134,7 +135,13 @@ function App() {
                       <Authenticated key="authenticated" fallback={<CatchAllNavigate to="/login" />}>
                         <ThemedLayout
                           Header={() => <Header sticky />}
-                          Sider={(props) => <ThemedSider {...props} fixed />}
+                          Sider={(props) => (
+                            <ThemedSider
+                              {...props}
+                              fixed
+                              Title={({ collapsed }) => <Logo collapsed={collapsed} />}
+                            />
+                          )}
                         >
                           <Outlet />
                         </ThemedLayout>
@@ -205,7 +212,14 @@ function App() {
                         DB -- no self-service registration or password reset. */}
                     <Route
                       path="/login"
-                      element={<AuthPage type="login" registerLink={false} forgotPasswordLink={false} />}
+                      element={
+                        <AuthPage
+                          type="login"
+                          registerLink={false}
+                          forgotPasswordLink={false}
+                          title={<Logo size={32} />}
+                        />
+                      }
                     />
                   </Route>
                 </Routes>
