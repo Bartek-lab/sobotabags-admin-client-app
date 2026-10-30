@@ -87,7 +87,7 @@ describe("ShipmentCard", () => {
 
     const input = screen.getByDisplayValue("OLD123");
     fireEvent.change(input, { target: { value: "FIXED456" } });
-    fireEvent.click(screen.getByLabelText(/jeszcze nie/i));
+    fireEvent.click(screen.getByRole("button", { name: /oznacz jako dostarczone/i }));
     fireEvent.click(screen.getByRole("button", { name: /zapisz zmiany/i }));
 
     const [args] = mutateMock.mock.calls[0];
@@ -96,7 +96,7 @@ describe("ShipmentCard", () => {
     expect(args.values).toEqual({ tracking_number: "FIXED456", tracking_url: undefined, delivered: true });
   });
 
-  it("shows the delivered timestamp once delivered_at is set", () => {
+  it("shows the delivered timestamp (and an undo button) once delivered_at is set", () => {
     render(
       <ShipmentCard
         order={{
@@ -108,7 +108,9 @@ describe("ShipmentCard", () => {
         onShipped={vi.fn()}
       />,
     );
-    expect(screen.getByLabelText(/tak,/i)).toBeInTheDocument();
+    expect(screen.getByText(new Date("2026-10-29T12:00:00Z").toLocaleString())).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /cofnij/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /oznacz jako dostarczone/i })).not.toBeInTheDocument();
   });
 
   it("disables the submit button until a tracking number is entered", () => {

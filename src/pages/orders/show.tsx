@@ -10,6 +10,7 @@ import {
   InputNumber,
   message,
   Select,
+  Space,
   Table,
   Tag,
   Typography,
@@ -17,7 +18,7 @@ import {
 import { useEffect, useState } from "react";
 import { API_URL } from "../../providers/constants";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 type Order = {
   id: string;
@@ -312,11 +313,16 @@ const ShippedEditCard = ({ order, onSaved }: { order: Order; onSaved: () => void
           <Input value={trackingUrl} onChange={(e) => setTrackingUrl(e.target.value)} placeholder="https://..." />
         </Descriptions.Item>
         <Descriptions.Item label="Dostarczono">
-          <Checkbox checked={delivered} onChange={(e) => setDelivered(e.target.checked)}>
-            {delivered && order.delivered_at
-              ? `Tak, ${new Date(order.delivered_at).toLocaleString()}`
-              : "Jeszcze nie"}
-          </Checkbox>
+          {delivered ? (
+            <Space>
+              <Text>{order.delivered_at ? new Date(order.delivered_at).toLocaleString() : "Tak"}</Text>
+              <Button size="small" onClick={() => setDelivered(false)}>
+                Cofnij
+              </Button>
+            </Space>
+          ) : (
+            <Button onClick={() => setDelivered(true)}>Oznacz jako dostarczone</Button>
+          )}
         </Descriptions.Item>
       </Descriptions>
       <Button type="primary" style={{ marginTop: 12 }} loading={mutation.isPending} onClick={save}>
