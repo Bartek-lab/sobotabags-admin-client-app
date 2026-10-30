@@ -139,7 +139,7 @@ function App() {
                             <ThemedSider
                               {...props}
                               fixed
-                              Title={({ collapsed }) => <Logo collapsed={collapsed} />}
+                              Title={() => <Logo />}
                             />
                           )}
                         >
@@ -217,7 +217,7 @@ function App() {
                           type="login"
                           registerLink={false}
                           forgotPasswordLink={false}
-                          title={<Logo size={32} />}
+                          title={<Logo size={56} />}
                         />
                       }
                     />

@@ -15,11 +15,6 @@ const markStyle = (size: number): React.CSSProperties => ({
   maskSize: "contain",
 });
 
-export const Logo = ({ collapsed = false, size = 24 }: { collapsed?: boolean; size?: number }) => (
-  <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-    <span aria-hidden style={markStyle(size)} />
-    {!collapsed && (
-      <span style={{ fontSize: size * 0.85, fontWeight: 600, letterSpacing: "-0.02em" }}>KS</span>
-    )}
-  </span>
+export const Logo = ({ size = 36 }: { size?: number }) => (
+  <span aria-hidden style={markStyle(size)} />
 );
