@@ -76,12 +76,11 @@ export const LegalGuideDocs = () => {
           />
           <Alert
             type="info"
-            message="June 19, 2026 — mandatory digital withdrawal button"
+            message="Why there's a withdrawal button on the order page"
             description={
               <>
-                EU Directive 2023/2673 requires a working withdrawal button directly on the order/account page by
-                this date for all online sellers in the EU. This is already built and live — nothing further
-                needed here, just flagging why it exists.
+                EU Directive 2023/2673 requires a working withdrawal button directly on the order/account page for
+                all online sellers in the EU, as of June 19, 2026.
               </>
             }
           />
@@ -125,10 +124,10 @@ export const LegalGuideDocs = () => {
             <ul style={{ marginBottom: 0 }}>
               <li>Customer data lives in Supabase (EU-hosted); payment data is handled by Stripe, not stored here.</li>
               <li>
-                A customer can request erasure ("right to be forgotten") — currently only a status label on the
-                customer record, not an automated scrub of PII. If a real request comes in, it needs to be handled
-                manually (order history retention for tax purposes can be a legitimate reason to retain some data
-                even after an erasure request — worth a quick check before deleting anything tied to an order).
+                A customer can request erasure ("right to be forgotten"). Marking their status "anonymized" is a
+                label only, not a data scrub — handle the actual request manually (order history retention for tax
+                purposes can be a legitimate reason to retain some data even after an erasure request — worth a
+                quick check before deleting anything tied to an order).
               </li>
               <li>Keep a record of any data breach and notify affected customers / UODO if one ever occurs.</li>
             </ul>

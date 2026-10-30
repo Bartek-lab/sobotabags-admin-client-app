@@ -36,7 +36,7 @@ const sortOrderRowsPl = [
 ];
 
 const dataTypeRowsEn = [
-  { type: "text / rich_text", renders: "Plain input / textarea", notes: "rich_text isn't actually sanitized/rendered as HTML anywhere yet — treat it as long plain text for now." },
+  { type: "text / rich_text", renders: "Plain input / textarea", notes: "rich_text renders as plain text, not interpreted as HTML." },
   { type: "number", renders: "Numeric input", notes: "Has an optional unit (e.g. \"cm\") set on the attribute itself." },
   { type: "boolean", renders: "Checkbox", notes: "e.g. fits_laptop, bestseller." },
   { type: "date", renders: "Date picker", notes: "" },
@@ -45,7 +45,7 @@ const dataTypeRowsEn = [
 ];
 
 const dataTypeRowsPl = [
-  { type: "text / rich_text", renders: "Zwykłe pole tekstowe / textarea", notes: "rich_text nie jest jeszcze nigdzie faktycznie sanityzowane/renderowane jako HTML — na razie traktuj jak zwykły, dłuższy tekst." },
+  { type: "text / rich_text", renders: "Zwykłe pole tekstowe / textarea", notes: "rich_text wyświetla się jako zwykły tekst, nie jest interpretowane jako HTML." },
   { type: "number", renders: "Pole liczbowe", notes: "Opcjonalna jednostka (np. \"cm\") ustawiana na samym atrybucie." },
   { type: "boolean", renders: "Checkbox", notes: "np. fits_laptop, bestseller." },
   { type: "date", renders: "Wybór daty", notes: "" },
@@ -69,7 +69,7 @@ const EnglishContent = () => {
                          the variant itself, whether or not it's a customer-facing choice
 
 Product (a real listing, e.g. "Shopper Bea")
-  ├── Translation (name, slug, description — Polish only for now)
+  ├── Translation (name, slug, description — Polish)
   ├── Images (ordered, first = storefront listing image)
   ├── product-level Attribute values
   ├── Categories (which storefront sections it shows in)
@@ -127,8 +127,8 @@ Product (a real listing, e.g. "Shopper Bea")
             image.
           </li>
           <li>
-            <b>Translations</b>: name, slug, descriptions. Only Polish is active for now. Meta title/description are
-            optional — leave them blank and they're auto-filled from name/short description on save.
+            <b>Translations</b>: name, slug, descriptions, in Polish. Meta title/description are optional — leave
+            them blank and they're auto-filled from name/short description on save.
           </li>
           <li>
             <b>Categories</b>: tick every category this product should appear in; optionally mark one primary. A
@@ -190,8 +190,8 @@ Product (a real listing, e.g. "Shopper Bea")
           <Alert
             type="info"
             showIcon
-            message="Translatable attributes aren't editable through this UI yet"
-            description="A text/rich_text attribute marked 'translatable' won't show up on the product edit form — that path isn't wired up in this pass. Keep translatable attributes untranslatable (plain text) unless you specifically need per-locale values, in which case ask for this to be built out."
+            message="Translatable attributes don't appear on the product edit form"
+            description="A text/rich_text attribute marked 'translatable' is excluded from the Attributes card and the variant modal entirely. Keep attributes non-translatable (plain text) unless the value genuinely needs to differ per locale."
           />
         </>
       ),
@@ -219,7 +219,7 @@ Product (a real listing, e.g. "Shopper Bea")
             style={{ marginTop: 12 }}
             type="warning"
             showIcon
-            message="A known mismatch"
+            message="These two don't stay in sync"
             description={
               <>
                 Reordering attributes on the <b>Product Type</b> screen only reorders that management table — it
@@ -299,7 +299,7 @@ const PolishContent = () => {
                          tworzeniu samego wariantu, niezależnie czy to wybór klienta czy nie
 
 Produkt (realny listing, np. "Shopper Bea")
-  ├── Tłumaczenie (nazwa, slug, opis — na razie tylko polski)
+  ├── Tłumaczenie (nazwa, slug, opis — polski)
   ├── Zdjęcia (uporządkowane, pierwsze = zdjęcie listingowe w sklepie)
   ├── Wartości atrybutów na poziomie produktu
   ├── Kategorie (w których sekcjach sklepu się pojawia)
@@ -356,8 +356,8 @@ Produkt (realny listing, np. "Shopper Bea")
             listingowe w sklepie.
           </li>
           <li>
-            <b>Tłumaczenia</b>: nazwa, slug, opisy. Na razie aktywny jest tylko polski. Meta title/description są
-            opcjonalne — zostaw je puste, a zostaną automatycznie uzupełnione z nazwy/krótkiego opisu przy zapisie.
+            <b>Tłumaczenia</b>: nazwa, slug, opisy, po polsku. Meta title/description są opcjonalne — zostaw je
+            puste, a zostaną automatycznie uzupełnione z nazwy/krótkiego opisu przy zapisie.
           </li>
           <li>
             <b>Kategorie</b>: zaznacz każdą kategorię, w której produkt ma się pojawić; opcjonalnie oznacz jedną jako
@@ -419,8 +419,8 @@ Produkt (realny listing, np. "Shopper Bea")
           <Alert
             type="info"
             showIcon
-            message="Atrybuty tłumaczalne nie są jeszcze edytowalne w tym UI"
-            description="Atrybut tekstowy/rich_text oznaczony jako 'translatable' nie pojawi się na formularzu edycji produktu -- ta ścieżka nie jest jeszcze podłączona. Zostaw atrybuty jako nietłumaczalne (zwykły tekst), chyba że faktycznie potrzebujesz wartości per język -- wtedy zgłoś, żeby to dobudować."
+            message="Atrybuty tłumaczalne nie pojawiają się na formularzu edycji produktu"
+            description="Atrybut tekstowy/rich_text oznaczony jako 'translatable' jest całkowicie wykluczony z karty Attributes i z modala wariantu. Zostaw atrybuty jako nietłumaczalne (zwykły tekst), chyba że wartość faktycznie musi się różnić między językami."
           />
         </>
       ),
@@ -448,7 +448,7 @@ Produkt (realny listing, np. "Shopper Bea")
             style={{ marginTop: 12 }}
             type="warning"
             showIcon
-            message="Znana niespójność"
+            message="Te dwie kolejności nie są ze sobą zsynchronizowane"
             description={
               <>
                 Przestawianie atrybutów na ekranie <b>Product Type</b> zmienia kolejność wyłącznie w tej tabeli

@@ -1,7 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import {
   ApiOutlined,
-  CloudOutlined,
   CreditCardOutlined,
   DatabaseOutlined,
   DesktopOutlined,
@@ -211,8 +210,7 @@ export const ArchitectureDocs = () => {
             both APIs (shop-api: contact form; admin-api: gift card issued, shipment confirmation).
           </div>
           <div style={{ marginTop: 4 }}>
-            <Tag color="red">Currently sandboxed</Tag> — delivery is restricted to the account owner's own address
-            until a domain is verified. See the Admin guide → Known limitations.
+            Sends from a verified domain (<Text code>shop@sobotabags.com</Text>) — delivers to any address.
           </div>
         </Box>
         <Box icon={<EnvironmentOutlined />} title="Furgonetka" subtitle="Shipping pickup-point picker" color={COLORS.provider}>
@@ -226,15 +224,13 @@ export const ArchitectureDocs = () => {
         Environments
       </Title>
       <Paragraph type="secondary">
+        One live environment: the{" "}
         <Tag icon={<LockOutlined />} color="gold">
           develop
         </Tag>{" "}
-        branch auto-deploys to the test environment on every push (both Vercel projects, both Render services).{" "}
-        <Tag icon={<CloudOutlined />} color="default">
-          main
-        </Tag>{" "}
-        branch → production is deliberately not wired up yet. All four repos share the same CI workflow (typecheck +
-        build) gating every push/PR regardless of branch.
+        branch auto-deploys on every push (both Vercel projects, both Render services) — there's no separate
+        staging/production split. All four repos share the same CI workflow (typecheck + build) gating every
+        push/PR.
       </Paragraph>
     </div>
   );

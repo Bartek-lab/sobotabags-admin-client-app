@@ -1,7 +1,7 @@
-import { Alert, Collapse, Tag, Typography } from "antd";
+import { Collapse, Tag, Typography } from "antd";
 import { ProductHandlingGuide } from "./product-handling-guide";
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph } = Typography;
 
 const panelStyle = { marginBottom: 8 };
 
@@ -101,8 +101,8 @@ export const AdminGuideDocs = () => {
         <Paragraph>
           Customer accounts are created by the customer themselves on the storefront (Supabase Auth) — this panel
           only lets you view and edit their profile/status, not create new ones. Setting a customer's status to
-          "anonymized" is currently just a label; it does not yet scrub their personal data (see Known
-          limitations below).
+          "anonymized" marks the account as such; it does not delete or scrub their stored personal data elsewhere
+          — handle an actual erasure request manually (see Legal → RODO/GDPR).
         </Paragraph>
       ),
     },
@@ -115,33 +115,6 @@ export const AdminGuideDocs = () => {
           self-service registration or "forgot password" link on this panel's login page by design. If the
           password is ever lost, it has to be reset directly in the database, not through the UI.
         </Paragraph>
-      ),
-    },
-    {
-      key: "limitations",
-      label: "Known limitations (as of today)",
-      children: (
-        <>
-          <Alert
-            type="warning"
-            showIcon
-            style={{ marginBottom: 12 }}
-            message="Resend sandbox mode"
-            description={
-              <>
-                Until a domain is verified in Resend, every outgoing email (order confirmation, shipment
-                notice, gift card, contact form reply) can only actually be delivered to the account owner's own
-                address. All the sending code is live and working — this is a dashboard/DNS step, not a code gap.
-              </>
-            }
-          />
-          <Paragraph>
-            Other open items, tracked in <Text code>PRODUCTION_READINESS_TODO.md</Text> next to the repos: RBAC is
-            not enforced per-route (moot while there's a single admin account), there's no production (
-            <Text code>main</Text> branch) deploy pipeline yet, no rate limiting on login/checkout, no error
-            monitoring, and the low-stock-alert email template exists but nothing triggers it yet.
-          </Paragraph>
-        </>
       ),
     },
   ];
